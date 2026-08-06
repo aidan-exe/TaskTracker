@@ -5,6 +5,7 @@ import { STATUSES, PRIORITIES, TASK_TYPES } from '../constants'
 import { StatusBadge } from './StatusBadge'
 import { PriorityBadge } from './PriorityBadge'
 import { TypeBadge } from './TypeBadge'
+import { UserAvatar } from './UserAvatar'
 import type { Status, Priority, TaskType } from '../types'
 
 function formatDatetime(iso: string) {
@@ -18,7 +19,7 @@ function formatDatetime(iso: string) {
 }
 
 export function TaskModal() {
-  const { tasks, selectedTaskId, setSelectedTaskId, updateTask, deleteTask, moveTask } =
+  const { tasks, selectedTaskId, setSelectedTaskId, updateTask, deleteTask, moveTask, users, getUserById } =
     useTaskStore()
 
   const task = tasks.find((t) => t.id === selectedTaskId) ?? null
@@ -34,6 +35,7 @@ export function TaskModal() {
   const [dueDate, setDueDate] = useState('')
   const [labelInput, setLabelInput] = useState('')
   const [labels, setLabels] = useState<string[]>([])
+  const [assigneeId, setAssigneeId] = useState<string>('')
 
   useEffect(() => {
     if (task) {
@@ -45,6 +47,7 @@ export function TaskModal() {
       setStoryPoints(task.storyPoints?.toString() ?? '')
       setDueDate(task.dueDate ? task.dueDate.slice(0, 10) : '')
       setLabels(task.labels)
+      setAssigneeId(task.assigneeId ?? '')
       setEditing(false)
     }
   }, [task?.id])
@@ -70,6 +73,7 @@ export function TaskModal() {
       storyPoints: storyPoints ? parseInt(storyPoints, 10) : null,
       dueDate: dueDate ? new Date(dueDate).toISOString() : null,
       labels,
+      assigneeId: assigneeId || null,
     })
     setEditing(false)
   }
@@ -296,9 +300,42 @@ export function TaskModal() {
                 </span>
               )}
             </div>
-          </div>
 
-          {/* labels */}
+            <div className="col-span-2">
+              <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-400">
+                Assignee
+              </label>
+              {editing ? (
+                <div className="flex items-center gap-2">
+                  {assigneeId && (() => {
+                    const user = getUserById(assigneeId)
+                    return user ? <UserAvatar user={user} size="sm" showTooltip={false} /> : null
+                  })()}
+                  <select
+                    value={assigneeId}
+                    onChange={(e) => setAssigneeId(e.target.value)}
+                    className={fieldClass}
+                    aria-label="Assignee"
+                  >
+                    <option value="">Unassigned</option>
+                    {users.map((u) => (
+                      <option key={u.id} value={u.id}>{u.name}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (() => {
+                const assignee = getUserById(task.assigneeId)
+                return assignee ? (
+                  <div className="flex items-center gap-2">
+                    <UserAvatar user={assignee} size="sm" showTooltip={false} />
+                    <span className="text-sm font-medium text-slate-700">{assignee.name}</span>
+                  </div>
+                ) : (
+                  <span className="text-sm text-slate-400">Unassigned</span>
+                )
+              })()}
+            </div>
+          </div>
           <div>
             <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-400">
               Labels

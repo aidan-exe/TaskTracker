@@ -1,121 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { v4 as uuidv4 } from 'uuid'
-import type { Task, NewTask, Status, FilterState, View } from './types'
-
-// ── Seed data ──────────────────────────────────────────────────────────────
-
-const SEED_TASKS: Task[] = [
-  {
-    id: uuidv4(),
-    title: 'User authentication flow',
-    description: 'Implement JWT-based auth with refresh tokens, password reset via email, and OAuth support.',
-    status: 'in_review',
-    priority: 'critical',
-    type: 'feature',
-    labels: ['auth', 'security'],
-    storyPoints: 13,
-    createdAt: new Date(Date.now() - 10 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 1 * 86400000).toISOString(),
-    dueDate: new Date(Date.now() + 2 * 86400000).toISOString(),
-  },
-  {
-    id: uuidv4(),
-    title: 'Dashboard analytics widgets',
-    description: 'Build reusable chart components (line, bar, pie) powered by the metrics API.',
-    status: 'in_progress',
-    priority: 'high',
-    type: 'feature',
-    labels: ['frontend', 'analytics'],
-    storyPoints: 8,
-    createdAt: new Date(Date.now() - 7 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 3600000).toISOString(),
-    dueDate: new Date(Date.now() + 5 * 86400000).toISOString(),
-  },
-  {
-    id: uuidv4(),
-    title: 'As a user I can filter search results by date range',
-    description: 'Add date range picker to the search page so users can narrow results to a specific time window.',
-    status: 'todo',
-    priority: 'medium',
-    type: 'user_story',
-    labels: ['search', 'frontend'],
-    storyPoints: 5,
-    createdAt: new Date(Date.now() - 5 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 5 * 86400000).toISOString(),
-    dueDate: new Date(Date.now() + 8 * 86400000).toISOString(),
-  },
-  {
-    id: uuidv4(),
-    title: 'Fix N+1 query in /api/projects',
-    description: 'The projects list endpoint fires a separate DB query per project to fetch members. Needs eager loading.',
-    status: 'in_progress',
-    priority: 'critical',
-    type: 'bug',
-    labels: ['backend', 'performance'],
-    storyPoints: 3,
-    createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 7200000).toISOString(),
-    dueDate: new Date(Date.now() + 1 * 86400000).toISOString(),
-  },
-  {
-    id: uuidv4(),
-    title: 'As a user I can export reports as CSV',
-    description: 'Users should be able to export any report table to CSV with a single click from the reports page.',
-    status: 'todo',
-    priority: 'medium',
-    type: 'user_story',
-    labels: ['reports', 'export'],
-    storyPoints: 5,
-    createdAt: new Date(Date.now() - 4 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 4 * 86400000).toISOString(),
-    dueDate: null,
-  },
-  {
-    id: uuidv4(),
-    title: 'Notifications service',
-    description: 'Real-time in-app notifications via WebSocket plus configurable email digest.',
-    status: 'backlog',
-    priority: 'medium',
-    type: 'feature',
-    labels: ['backend', 'realtime'],
-    storyPoints: 8,
-    createdAt: new Date(Date.now() - 6 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 6 * 86400000).toISOString(),
-    dueDate: new Date(Date.now() + 14 * 86400000).toISOString(),
-  },
-  {
-    id: uuidv4(),
-    title: 'Modal closes unexpectedly on mobile tap outside',
-    description: 'On iOS Safari, tapping the backdrop to close a modal sometimes triggers a click on elements beneath it.',
-    status: 'backlog',
-    priority: 'high',
-    type: 'bug',
-    labels: ['mobile', 'ui'],
-    storyPoints: 2,
-    createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-    dueDate: null,
-  },
-  {
-    id: uuidv4(),
-    title: 'Settings page — account preferences',
-    description: 'Build the account settings page covering profile info, notification preferences, and connected apps.',
-    status: 'done',
-    priority: 'low',
-    type: 'feature',
-    labels: ['settings', 'frontend'],
-    storyPoints: 5,
-    createdAt: new Date(Date.now() - 14 * 86400000).toISOString(),
-    updatedAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-    dueDate: null,
-  },
-]
+import type { Task, NewTask, NewUser, User, Status, FilterState, View } from './types'
 
 // ── Store types ─────────────────────────────────────────────────────────────
 
 interface TaskStore {
   tasks: Task[]
+  users: User[]
   filters: FilterState
   view: View
   selectedTaskId: string | null
@@ -126,6 +18,11 @@ interface TaskStore {
   deleteTask: (id: string) => void
   moveTask: (id: string, status: Status) => void
 
+  // User actions
+  addUser: (user: NewUser) => void
+  updateUser: (id: string, updates: Partial<NewUser>) => void
+  deleteUser: (id: string) => void
+
   // UI actions
   setFilters: (filters: Partial<FilterState>) => void
   resetFilters: () => void
@@ -134,12 +31,14 @@ interface TaskStore {
 
   // Derived
   filteredTasks: () => Task[]
+  getUserById: (id: string | null) => User | undefined
 }
 
 const DEFAULT_FILTERS: FilterState = {
   search: '',
   priority: 'all',
   type: 'all',
+  assigneeId: 'all',
 }
 
 // ── Store ────────────────────────────────────────────────────────────────────
@@ -147,10 +46,13 @@ const DEFAULT_FILTERS: FilterState = {
 export const useTaskStore = create<TaskStore>()(
   persist(
     (set, get) => ({
-      tasks: SEED_TASKS,
+      tasks: [],
+      users: [],
       filters: DEFAULT_FILTERS,
       view: 'kanban',
       selectedTaskId: null,
+
+      // ── Task actions ──────────────────────────────────────────────────────
 
       addTask: (task) =>
         set((state) => ({
@@ -190,6 +92,40 @@ export const useTaskStore = create<TaskStore>()(
           ),
         })),
 
+      // ── User actions ──────────────────────────────────────────────────────
+
+      addUser: (user) =>
+        set((state) => ({
+          users: [
+            ...state.users,
+            {
+              ...user,
+              id: uuidv4(),
+              createdAt: new Date().toISOString(),
+            },
+          ],
+        })),
+
+      updateUser: (id, updates) =>
+        set((state) => ({
+          users: state.users.map((u) =>
+            u.id === id ? { ...u, ...updates } : u
+          ),
+        })),
+
+      deleteUser: (id) =>
+        set((state) => ({
+          users: state.users.filter((u) => u.id !== id),
+          // Unassign tasks that were assigned to this user
+          tasks: state.tasks.map((t) =>
+            t.assigneeId === id
+              ? { ...t, assigneeId: null, updatedAt: new Date().toISOString() }
+              : t
+          ),
+        })),
+
+      // ── UI actions ────────────────────────────────────────────────────────
+
       setFilters: (filters) =>
         set((state) => ({ filters: { ...state.filters, ...filters } })),
 
@@ -198,6 +134,8 @@ export const useTaskStore = create<TaskStore>()(
       setView: (view) => set({ view }),
 
       setSelectedTaskId: (id) => set({ selectedTaskId: id }),
+
+      // ── Derived ───────────────────────────────────────────────────────────
 
       filteredTasks: () => {
         const { tasks, filters } = get()
@@ -210,9 +148,23 @@ export const useTaskStore = create<TaskStore>()(
             return false
           if (filters.priority !== 'all' && t.priority !== filters.priority)
             return false
-          if (filters.type !== 'all' && t.type !== filters.type) return false
+          if (filters.type !== 'all' && t.type !== filters.type)
+            return false
+          if (filters.assigneeId === 'unassigned' && t.assigneeId !== null)
+            return false
+          if (
+            filters.assigneeId !== 'all' &&
+            filters.assigneeId !== 'unassigned' &&
+            t.assigneeId !== filters.assigneeId
+          )
+            return false
           return true
         })
+      },
+
+      getUserById: (id) => {
+        if (!id) return undefined
+        return get().users.find((u) => u.id === id)
       },
     }),
     { name: 'tasktracker-store' }

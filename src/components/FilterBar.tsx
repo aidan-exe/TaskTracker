@@ -1,13 +1,15 @@
 import { Search, X, Kanban, List } from 'lucide-react'
 import { PRIORITIES, TASK_TYPES } from '../constants'
 import { useTaskStore } from '../store'
+import { UserAvatar } from './UserAvatar'
 
 export function FilterBar() {
-  const { filters, view, setFilters, resetFilters, setView } = useTaskStore()
+  const { filters, view, setFilters, resetFilters, setView, users } = useTaskStore()
   const hasActiveFilters =
     filters.search !== '' ||
     filters.priority !== 'all' ||
-    filters.type !== 'all'
+    filters.type !== 'all' ||
+    filters.assigneeId !== 'all'
 
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -60,6 +62,30 @@ export function FilterBar() {
           </option>
         ))}
       </select>
+
+      {/* assignee filter */}
+      {users.length > 0 && (
+        <div className="flex items-center gap-1.5">
+          {filters.assigneeId !== 'all' && filters.assigneeId !== 'unassigned' && (() => {
+            const user = users.find((u) => u.id === filters.assigneeId)
+            return user ? <UserAvatar user={user} size="sm" /> : null
+          })()}
+          <select
+            value={filters.assigneeId}
+            onChange={(e) =>
+              setFilters({ assigneeId: e.target.value as typeof filters.assigneeId })
+            }
+            className="rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-sm text-slate-700 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            aria-label="Filter by assignee"
+          >
+            <option value="all">All assignees</option>
+            <option value="unassigned">Unassigned</option>
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>{u.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* clear filters */}
       {hasActiveFilters && (

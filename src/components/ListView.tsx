@@ -5,6 +5,7 @@ import { STATUSES } from '../constants'
 import { StatusBadge } from './StatusBadge'
 import { PriorityBadge } from './PriorityBadge'
 import { TypeBadge } from './TypeBadge'
+import { UserAvatar } from './UserAvatar'
 import type { Task } from '../types'
 
 type SortKey = 'title' | 'status' | 'priority' | 'type' | 'dueDate' | 'storyPoints'
@@ -35,7 +36,7 @@ function sortTasks(tasks: Task[], key: SortKey, dir: SortDir): Task[] {
 }
 
 export function ListView() {
-  const { filteredTasks, setSelectedTaskId } = useTaskStore()
+  const { filteredTasks, setSelectedTaskId, getUserById } = useTaskStore()
   const tasks = filteredTasks()
 
   const [sortKey, setSortKey] = useState<SortKey>('priority')
@@ -83,6 +84,9 @@ export function ListView() {
             <ColHeader col="priority"    label="Priority" />
             <ColHeader col="type"        label="Type" />
             <ColHeader col="storyPoints" label="SP" />
+            <th scope="col" className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Assignee
+            </th>
             <ColHeader col="dueDate"     label="Due" />
           </tr>
         </thead>
@@ -123,6 +127,19 @@ export function ListView() {
                 </td>
                 <td className="px-3 py-3 text-center text-xs font-medium text-slate-600 whitespace-nowrap">
                   {task.storyPoints ?? '—'}
+                </td>
+                <td className="px-3 py-3 whitespace-nowrap">
+                  {(() => {
+                    const assignee = getUserById(task.assigneeId)
+                    return assignee ? (
+                      <div className="flex items-center gap-1.5">
+                        <UserAvatar user={assignee} size="sm" />
+                        <span className="text-xs text-slate-600 truncate max-w-[80px]">{assignee.name}</span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-400">—</span>
+                    )
+                  })()}
                 </td>
                 <td className="py-3 pl-3 pr-4 whitespace-nowrap">
                   {task.dueDate ? (

@@ -1,6 +1,7 @@
 import { CalendarDays, Tag } from 'lucide-react'
 import { PriorityBadge } from './PriorityBadge'
 import { TypeBadge } from './TypeBadge'
+import { UserAvatar } from './UserAvatar'
 import { useTaskStore } from '../store'
 import type { Task } from '../types'
 
@@ -19,7 +20,9 @@ function isOverdue(dueDate: string | null) {
 
 export function TaskCard({ task }: Props) {
   const setSelectedTaskId = useTaskStore((s) => s.setSelectedTaskId)
+  const getUserById = useTaskStore((s) => s.getUserById)
   const overdue = isOverdue(task.dueDate)
+  const assignee = getUserById(task.assigneeId)
 
   return (
     <button
@@ -61,7 +64,7 @@ export function TaskCard({ task }: Props) {
 
       {/* footer */}
       <div className="flex items-center justify-between gap-2">
-        {/* story points */}
+        {/* left side - story points, labels, assignee */}
         <div className="flex items-center gap-2">
           {task.storyPoints !== null && (
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-[10px] font-semibold text-slate-600">
@@ -74,8 +77,12 @@ export function TaskCard({ task }: Props) {
               {task.labels.length}
             </span>
           )}
+          {assignee && (
+            <UserAvatar user={assignee} size="sm" />
+          )}
         </div>
 
+        {/* right side - due date */}
         {task.dueDate && (
           <span
             className={`flex items-center gap-0.5 text-xs ${overdue ? 'text-red-500 font-medium' : 'text-slate-400'}`}

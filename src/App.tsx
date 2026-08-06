@@ -1,17 +1,19 @@
 import { useState } from 'react'
-import { Plus, Zap } from 'lucide-react'
+import { Plus, Zap, Users } from 'lucide-react'
 import { useTaskStore } from './store'
 import { FilterBar } from './components/FilterBar'
 import { KanbanView } from './components/KanbanView'
 import { ListView } from './components/ListView'
 import { TaskModal } from './components/TaskModal'
 import { NewTaskModal } from './components/NewTaskModal'
+import { UserManager } from './components/UserManager'
 import { StatsBar } from './components/StatsBar'
 
 export default function App() {
   const view = useTaskStore((s) => s.view)
   const selectedTaskId = useTaskStore((s) => s.selectedTaskId)
   const [showNewTask, setShowNewTask] = useState(false)
+  const [showUserManager, setShowUserManager] = useState(false)
 
   return (
     <div className="min-h-screen bg-slate-100 font-sans">
@@ -36,6 +38,14 @@ export default function App() {
                 day: 'numeric',
               })}
             </span>
+            <button
+              type="button"
+              onClick={() => setShowUserManager(true)}
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500/40 transition-colors"
+            >
+              <Users className="h-4 w-4" aria-hidden="true" />
+              Team
+            </button>
             <button
               type="button"
               onClick={() => setShowNewTask(true)}
@@ -63,6 +73,7 @@ export default function App() {
       {/* modals */}
       {selectedTaskId && <TaskModal />}
       {showNewTask && <NewTaskModal onClose={() => setShowNewTask(false)} />}
+      {showUserManager && <UserManager onClose={() => setShowUserManager(false)} />}
     </div>
   )
 }

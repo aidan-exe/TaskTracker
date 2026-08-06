@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { X, Plus } from 'lucide-react'
 import { useTaskStore } from '../store'
 import { STATUSES, PRIORITIES, TASK_TYPES } from '../constants'
+import { UserAvatar } from './UserAvatar'
 import type { Status, Priority, TaskType } from '../types'
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
 
 export function NewTaskModal({ onClose }: Props) {
   const addTask = useTaskStore((s) => s.addTask)
+  const users = useTaskStore((s) => s.users)
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -20,6 +22,7 @@ export function NewTaskModal({ onClose }: Props) {
   const [dueDate, setDueDate] = useState('')
   const [labelInput, setLabelInput] = useState('')
   const [labels, setLabels] = useState<string[]>([])
+  const [assigneeId, setAssigneeId] = useState<string>('')
   const [error, setError] = useState('')
 
   function handleAddLabel(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -46,6 +49,7 @@ export function NewTaskModal({ onClose }: Props) {
       labels,
       storyPoints: storyPoints ? parseInt(storyPoints, 10) : null,
       dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+      assigneeId: assigneeId || null,
     })
     onClose()
   }
@@ -189,6 +193,34 @@ export function NewTaskModal({ onClose }: Props) {
               onChange={(e) => setDueDate(e.target.value)}
               className={fieldClass}
             />
+          </div>
+
+          {/* assignee */}
+          <div>
+            <label htmlFor="new-assignee" className={labelClass}>Assignee</label>
+            {users.length === 0 ? (
+              <p className="text-xs text-slate-400 italic">
+                No team members yet — add users via the Team button in the header.
+              </p>
+            ) : (
+              <div className="flex items-center gap-2">
+                {assigneeId && (() => {
+                  const user = users.find((u) => u.id === assigneeId)
+                  return user ? <UserAvatar user={user} size="sm" showTooltip={false} /> : null
+                })()}
+                <select
+                  id="new-assignee"
+                  value={assigneeId}
+                  onChange={(e) => setAssigneeId(e.target.value)}
+                  className={fieldClass}
+                >
+                  <option value="">Unassigned</option>
+                  {users.map((u) => (
+                    <option key={u.id} value={u.id}>{u.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* labels */}
