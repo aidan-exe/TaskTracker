@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { X, Trash2, Edit3, Check } from 'lucide-react'
+import { X, Trash2, Edit3, Check, Plus } from 'lucide-react'
 import { useTaskStore } from '../store'
 import { STATUSES, PRIORITIES } from '../constants'
 import { StatusBadge } from './StatusBadge'
 import { PriorityBadge } from './PriorityBadge'
 import { UserAvatar } from './UserAvatar'
+import { ProgressBar } from './ProgressBar'
 import type { Status, Priority } from '../types'
 
 const fieldClass =
@@ -13,20 +14,26 @@ const labelClass =
   'block text-xs font-medium uppercase tracking-wide text-slate-400 mb-1'
 
 interface Props {
-  taskId: string
+  storyId: string
   onClose: () => void
+  onAddTask?: (storyId: string) => void
 }
 
-export function TaskModal({ taskId, onClose }: Props) {
-  const { getTaskById, getStoryById, getEpicById, updateTask, deleteTask, moveTask, getUserById, users } = useTaskStore()
+export function StoryModal({ storyId, onClose, onAddTask }: Props) {
+  const {
+    getStoryById, getEpicById, updateStory, deleteStory,
+    tasksForStory, storyProgress,
+    getUserById, users,
+    setSelectedTaskId,
+  } = useTaskStore()
 
-  const task = getTaskById(taskId)
+  const story = getStoryById(storyId)
   const overlayRef = useRef<HTMLDivElement>(null)
   const [editing, setEditing] = useState(false)
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [status, setStatus] = useState<Status>('todo')
+  const [status, setStatus] = useState<Status>('backlog')
   const [priority, setPriority] = useState<Priority>('medium')
   const [storyPoints, setStoryPoints] = useState('')
   const [assigneeId, setAssigneeId] = useState('')
@@ -35,18 +42,18 @@ export function TaskModal({ taskId, onClose }: Props) {
   const [labels, setLabels] = useState<string[]>([])
 
   useEffect(() => {
-    if (task) {
-      setTitle(task.title)
-      setDescription(task.description)
-      setStatus(task.status)
-      setPriority(task.priority)
-      setStoryPoints(task.storyPoints?.toString() ?? '')
-      setAssigneeId(task.assigneeId ?? '')
-      setDueDate(task.dueDate ? task.dueDate.slice(0, 10) : '')
-      setLabels(task.labels)
+    if (story) {
+      setTitle(story.title)
+      setDescription(story.description)
+      setStatus(story.status)
+      setPriority(story.priority)
+      setStoryPoints(story.storyPoints?.toString() ?? '')
+      setAssigneeId(story.assigneeId ?? '')
+      setDueDate(story.dueDate ? story.dueDate.slice(0, 10) : '')
+      setLabels(story.labels)
       setEditing(false)
     }
-  }, [task?.id])
+  }, [story?.id])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -54,14 +61,15 @@ export function TaskModal({ taskId, onClose }: Props) {
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  if (!task) return null
+  if (!story) return null
 
-  const story = getStoryById(task.storyId)
-  const epic = story ? getEpicById(story.epicId) : undefined
-  const assignee = getUserById(task.assigneeId)
+  const epic = getEpicById(story.epicId)
+  const tasks = tasksForStory(storyId)
+  const progress = storyProgress(storyId)
+  const assignee = getUserById(story.assigneeId)
 
   function handleSave() {
-    updateTask(taskId, {
+    updateStory(storyId, {
       title, description, status, priority,
       storyPoints: storyPoints ? parseInt(storyPoints, 10) : null,
       assigneeId: assigneeId || null,
@@ -72,10 +80,8 @@ export function TaskModal({ taskId, onClose }: Props) {
   }
 
   function handleDelete() {
-    if (window.confirm(`Delete task "${task!.title}"? This cannot be undone.`)) {
-      deleteTask(taskId)
-      onClose()
-    }
+    const msg = `Delete story "${story!.title}"?\n\nThis will also delete ${tasks.length} task${tasks.length !== 1 ? 's' : ''}. This cannot be undone.`
+    if (window.confirm(msg)) { deleteStory(storyId); onClose() }
   }
 
   function addLabel(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -92,13 +98,13 @@ export function TaskModal({ taskId, onClose }: Props) {
       ref={overlayRef}
       role="dialog"
       aria-modal="true"
-      aria-label={`Task: ${task.title}`}
+      aria-label={`Story: ${story.title}`}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
       onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
     >
       <div className="relative flex w-full max-w-2xl max-h-[90vh] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-        {/* epic accent bar */}
-        <div className="h-1.5 w-full" style={{ backgroundColor: epic?.color ?? '#94a3b8' }} />
+        {/* epic color accent */}
+        <div className="h-1.5 w-full" style={{ backgroundColor: epic?.color ?? '#8b5cf6' }} />
 
         {/* header */}
         <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-4">
@@ -109,16 +115,11 @@ export function TaskModal({ taskId, onClose }: Props) {
                 ◆ {epic.title}
               </span>
             )}
-            {story && (
-              <span className="rounded-md bg-violet-100 px-2 py-0.5 text-xs font-semibold text-violet-700">
-                ◈ {story.title}
-              </span>
-            )}
-            <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
-              ✦ Task
+            <span className="rounded-md bg-violet-100 px-2 py-0.5 text-xs font-semibold text-violet-700">
+              ◈ Story
             </span>
-            <StatusBadge status={editing ? status : task.status} />
-            <PriorityBadge priority={editing ? priority : task.priority} />
+            <StatusBadge status={editing ? status : story.status} />
+            <PriorityBadge priority={editing ? priority : story.priority} />
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             {editing ? (
@@ -134,7 +135,7 @@ export function TaskModal({ taskId, onClose }: Props) {
             )}
             <button type="button" onClick={handleDelete}
               className="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500/20"
-              aria-label="Delete task">
+              aria-label="Delete story">
               <Trash2 className="h-4 w-4" />
             </button>
             <button type="button" onClick={onClose}
@@ -147,37 +148,44 @@ export function TaskModal({ taskId, onClose }: Props) {
 
         {/* body */}
         <div className="overflow-y-auto px-6 py-5 space-y-5">
+          {/* title */}
           {editing ? (
             <input value={title} onChange={(e) => setTitle(e.target.value)}
-              className={fieldClass + ' text-lg font-semibold'} aria-label="Task title" />
+              className={fieldClass + ' text-lg font-semibold'} aria-label="Story title" />
           ) : (
-            <h2 className="text-lg font-semibold text-slate-800">{task.title}</h2>
+            <h2 className="text-lg font-semibold text-slate-800">{story.title}</h2>
           )}
 
+          {/* description */}
           <div>
             <label className={labelClass}>Description</label>
             {editing ? (
               <textarea value={description} onChange={(e) => setDescription(e.target.value)}
-                rows={4} className={fieldClass} />
+                rows={3} className={fieldClass} />
             ) : (
               <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
-                {task.description || <em className="text-slate-400">No description</em>}
+                {story.description || <em className="text-slate-400">No description</em>}
               </p>
             )}
           </div>
 
+          {/* progress */}
+          {progress.total > 0 && (
+            <div>
+              <label className={labelClass}>Task Progress</label>
+              <ProgressBar progress={progress} />
+            </div>
+          )}
+
+          {/* metadata grid */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Status</label>
               {editing ? (
-                <select value={status} onChange={(e) => {
-                  const s = e.target.value as Status
-                  setStatus(s)
-                  moveTask(taskId, s)
-                }} className={fieldClass}>
+                <select value={status} onChange={(e) => setStatus(e.target.value as Status)} className={fieldClass}>
                   {STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
-              ) : <StatusBadge status={task.status} />}
+              ) : <StatusBadge status={story.status} />}
             </div>
 
             <div>
@@ -186,7 +194,7 @@ export function TaskModal({ taskId, onClose }: Props) {
                 <select value={priority} onChange={(e) => setPriority(e.target.value as Priority)} className={fieldClass}>
                   {PRIORITIES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
                 </select>
-              ) : <PriorityBadge priority={task.priority} />}
+              ) : <PriorityBadge priority={story.priority} />}
             </div>
 
             <div>
@@ -195,7 +203,7 @@ export function TaskModal({ taskId, onClose }: Props) {
                 <input type="number" min={0} max={100} value={storyPoints}
                   onChange={(e) => setStoryPoints(e.target.value)} placeholder="—" className={fieldClass} />
               ) : (
-                <span className="text-sm font-medium text-slate-700">{task.storyPoints ?? '—'}</span>
+                <span className="text-sm font-medium text-slate-700">{story.storyPoints ?? '—'}</span>
               )}
             </div>
 
@@ -205,7 +213,7 @@ export function TaskModal({ taskId, onClose }: Props) {
                 <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={fieldClass} />
               ) : (
                 <span className="text-sm font-medium text-slate-700">
-                  {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+                  {story.dueDate ? new Date(story.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                 </span>
               )}
             </div>
@@ -238,7 +246,7 @@ export function TaskModal({ taskId, onClose }: Props) {
           <div>
             <label className={labelClass}>Labels</label>
             <div className="flex flex-wrap gap-1.5 mb-2">
-              {(editing ? labels : task.labels).map((l) => (
+              {(editing ? labels : story.labels).map((l) => (
                 <span key={l} className="flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
                   {l}
                   {editing && (
@@ -251,14 +259,52 @@ export function TaskModal({ taskId, onClose }: Props) {
               ))}
             </div>
             {editing && (
-              <input value={labelInput} onChange={(e) => setLabelInput(e.target.value)}
-                onKeyDown={addLabel} placeholder="Type a label and press Enter…" className={fieldClass} />
+              <input value={labelInput} onChange={(e) => setLabelInput(e.target.value)} onKeyDown={addLabel}
+                placeholder="Type a label and press Enter…" className={fieldClass} />
             )}
           </div>
 
+          {/* child tasks */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className={labelClass}>Tasks ({tasks.length})</label>
+              {onAddTask && (
+                <button type="button" onClick={() => { onClose(); onAddTask(storyId) }}
+                  className="flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-700">
+                  <Plus className="h-3.5 w-3.5" /> Add Task
+                </button>
+              )}
+            </div>
+            {tasks.length === 0 ? (
+              <p className="text-xs text-slate-400 italic">No tasks yet.</p>
+            ) : (
+              <ul className="space-y-1.5">
+                {tasks.map((t) => {
+                  const taskAssignee = getUserById(t.assigneeId)
+                  return (
+                    <li key={t.id}>
+                      <button type="button"
+                        onClick={() => { onClose(); setSelectedTaskId(t.id) }}
+                        className="w-full text-left rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 hover:border-brand-200 hover:bg-white transition-colors">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-sm font-medium text-slate-700 truncate">✦ {t.title}</span>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {taskAssignee && <UserAvatar user={taskAssignee} size="sm" />}
+                            <StatusBadge status={t.status} />
+                          </div>
+                        </div>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </div>
+
+          {/* timestamps */}
           <div className="flex flex-wrap gap-4 border-t border-slate-100 pt-4 text-xs text-slate-400">
-            <span>Created {new Date(task.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-            <span>Updated {new Date(task.updatedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+            <span>Created {new Date(story.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+            <span>Updated {new Date(story.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
           </div>
         </div>
       </div>

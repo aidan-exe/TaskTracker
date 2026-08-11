@@ -1,4 +1,4 @@
-import type { Status, Priority, TaskType } from './types'
+import type { Status, Priority } from './types'
 
 export const STATUSES: { value: Status; label: string }[] = [
   { value: 'backlog',     label: 'Backlog' },
@@ -15,11 +15,7 @@ export const PRIORITIES: { value: Priority; label: string }[] = [
   { value: 'low',      label: 'Low' },
 ]
 
-export const TASK_TYPES: { value: TaskType; label: string }[] = [
-  { value: 'feature',    label: 'Feature' },
-  { value: 'user_story', label: 'User Story' },
-  { value: 'bug',        label: 'Bug' },
-]
+// ── Status colors ─────────────────────────────────────────────────────────────
 
 export const STATUS_COLORS: Record<Status, string> = {
   backlog:     'bg-slate-100 text-slate-600',
@@ -37,6 +33,8 @@ export const STATUS_HEADER_COLORS: Record<Status, string> = {
   done:        'border-t-emerald-500',
 }
 
+// ── Priority colors ───────────────────────────────────────────────────────────
+
 export const PRIORITY_COLORS: Record<Priority, string> = {
   critical: 'bg-red-100 text-red-700',
   high:     'bg-orange-100 text-orange-700',
@@ -51,14 +49,26 @@ export const PRIORITY_DOT_COLORS: Record<Priority, string> = {
   low:      'bg-slate-400',
 }
 
-export const TYPE_COLORS: Record<TaskType, string> = {
-  feature:    'bg-indigo-100 text-indigo-700',
-  user_story: 'bg-violet-100 text-violet-700',
-  bug:        'bg-red-100 text-red-700',
-}
+// ── Hierarchy level colors ────────────────────────────────────────────────────
+// Each level gets a distinct visual identity
 
-export const TYPE_ICONS: Record<TaskType, string> = {
-  feature:    '✦',
-  user_story: '◈',
-  bug:        '⬡',
-}
+export const EPIC_COLORS = [
+  { label: 'Indigo',  value: '#6366f1' },
+  { label: 'Violet',  value: '#8b5cf6' },
+  { label: 'Pink',    value: '#ec4899' },
+  { label: 'Rose',    value: '#f43f5e' },
+  { label: 'Blue',    value: '#3b82f6' },
+  { label: 'Cyan',    value: '#06b6d4' },
+  { label: 'Teal',    value: '#14b8a6' },
+  { label: 'Emerald', value: '#10b981' },
+  { label: 'Amber',   value: '#f59e0b' },
+  { label: 'Orange',  value: '#f97316' },
+]
+
+// ── Level badge styles ────────────────────────────────────────────────────────
+
+export const LEVEL_STYLES = {
+  epic:  { bg: 'bg-indigo-50',  text: 'text-indigo-700',  border: 'border-indigo-200',  icon: '◆', label: 'Epic'  },
+  story: { bg: 'bg-violet-50',  text: 'text-violet-700',  border: 'border-violet-200',  icon: '◈', label: 'Story' },
+  task:  { bg: 'bg-slate-50',   text: 'text-slate-600',   border: 'border-slate-200',   icon: '✦', label: 'Task'  },
+} as const

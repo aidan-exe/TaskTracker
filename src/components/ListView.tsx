@@ -4,11 +4,10 @@ import { useTaskStore } from '../store'
 import { STATUSES } from '../constants'
 import { StatusBadge } from './StatusBadge'
 import { PriorityBadge } from './PriorityBadge'
-import { TypeBadge } from './TypeBadge'
 import { UserAvatar } from './UserAvatar'
 import type { Task } from '../types'
 
-type SortKey = 'title' | 'status' | 'priority' | 'type' | 'dueDate' | 'storyPoints'
+type SortKey = 'title' | 'status' | 'priority' | 'dueDate' | 'storyPoints'
 type SortDir = 'asc' | 'desc'
 
 const PRIORITY_ORDER: Record<string, number> = {
@@ -24,7 +23,6 @@ function sortTasks(tasks: Task[], key: SortKey, dir: SortDir): Task[] {
     if (key === 'title')       cmp = a.title.localeCompare(b.title)
     else if (key === 'status') cmp = (STATUS_ORDER[a.status] ?? 0) - (STATUS_ORDER[b.status] ?? 0)
     else if (key === 'priority') cmp = (PRIORITY_ORDER[a.priority] ?? 0) - (PRIORITY_ORDER[b.priority] ?? 0)
-    else if (key === 'type')   cmp = a.type.localeCompare(b.type)
     else if (key === 'storyPoints') cmp = (a.storyPoints ?? -1) - (b.storyPoints ?? -1)
     else if (key === 'dueDate') {
       const da = a.dueDate ? new Date(a.dueDate).getTime() : Infinity
@@ -36,7 +34,7 @@ function sortTasks(tasks: Task[], key: SortKey, dir: SortDir): Task[] {
 }
 
 export function ListView() {
-  const { filteredTasks, setSelectedTaskId, getUserById } = useTaskStore()
+  const { filteredTasks, setSelectedTaskId, getUserById, getStoryById, getEpicById } = useTaskStore()
   const tasks = filteredTasks()
 
   const [sortKey, setSortKey] = useState<SortKey>('priority')
@@ -79,10 +77,12 @@ export function ListView() {
       <table className="w-full min-w-[600px] text-sm">
         <thead className="border-b border-slate-100 bg-slate-50">
           <tr className="text-left">
+            <th scope="col" className="px-3 py-3 first:pl-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Epic / Story
+            </th>
             <ColHeader col="title"       label="Title" />
             <ColHeader col="status"      label="Status" />
             <ColHeader col="priority"    label="Priority" />
-            <ColHeader col="type"        label="Type" />
             <ColHeader col="storyPoints" label="SP" />
             <th scope="col" className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
               Assignee
@@ -104,7 +104,27 @@ export function ListView() {
                   if (e.key === 'Enter' || e.key === ' ') setSelectedTaskId(task.id)
                 }}
               >
-                <td className="max-w-xs py-3 pl-4 pr-3">
+                <td className="px-3 py-3 whitespace-nowrap pl-4">
+                  {(() => {
+                    const story = getStoryById(task.storyId)
+                    const epic = story ? getEpicById(story.epicId) : undefined
+                    return (
+                      <div className="flex flex-col gap-1">
+                        {epic && (
+                          <span className="inline-flex rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-white w-fit" style={{ backgroundColor: epic.color }}>
+                            ◆ {epic.title}
+                          </span>
+                        )}
+                        {story && (
+                          <span className="inline-flex rounded-md bg-violet-100 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700 w-fit">
+                            ◈ {story.title}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })()}
+                </td>
+                <td className="max-w-xs py-3 px-3">
                   <span className="block font-medium text-slate-800 truncate">{task.title}</span>
                   {task.labels.length > 0 && (
                     <div className="mt-0.5 flex flex-wrap gap-1">
@@ -121,9 +141,6 @@ export function ListView() {
                 </td>
                 <td className="px-3 py-3 whitespace-nowrap">
                   <PriorityBadge priority={task.priority} />
-                </td>
-                <td className="px-3 py-3 whitespace-nowrap">
-                  <TypeBadge type={task.type} />
                 </td>
                 <td className="px-3 py-3 text-center text-xs font-medium text-slate-600 whitespace-nowrap">
                   {task.storyPoints ?? '—'}

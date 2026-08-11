@@ -1,6 +1,5 @@
 import { CalendarDays, Tag } from 'lucide-react'
 import { PriorityBadge } from './PriorityBadge'
-import { TypeBadge } from './TypeBadge'
 import { UserAvatar } from './UserAvatar'
 import { useTaskStore } from '../store'
 import type { Task } from '../types'
@@ -19,10 +18,11 @@ function isOverdue(dueDate: string | null) {
 }
 
 export function TaskCard({ task }: Props) {
-  const setSelectedTaskId = useTaskStore((s) => s.setSelectedTaskId)
-  const getUserById = useTaskStore((s) => s.getUserById)
+  const { setSelectedTaskId, getUserById, getStoryById, getEpicById } = useTaskStore()
   const overdue = isOverdue(task.dueDate)
   const assignee = getUserById(task.assigneeId)
+  const story = getStoryById(task.storyId)
+  const epic = story ? getEpicById(story.epicId) : undefined
 
   return (
     <button
@@ -30,9 +30,22 @@ export function TaskCard({ task }: Props) {
       onClick={() => setSelectedTaskId(task.id)}
       className="group w-full text-left rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-brand-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
     >
-      {/* type + priority row */}
-      <div className="mb-2 flex items-center gap-2 flex-wrap">
-        <TypeBadge type={task.type} />
+      {/* breadcrumb */}
+      <div className="mb-2 flex items-center gap-1.5 flex-wrap">
+        {epic && (
+          <span className="rounded-md px-1.5 py-0.5 text-[10px] font-semibold text-white" style={{ backgroundColor: epic.color }}>
+            ◆ {epic.title}
+          </span>
+        )}
+        {story && (
+          <span className="rounded-md bg-violet-100 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700">
+            ◈ {story.title}
+          </span>
+        )}
+      </div>
+
+      {/* priority */}
+      <div className="mb-2">
         <PriorityBadge priority={task.priority} />
       </div>
 

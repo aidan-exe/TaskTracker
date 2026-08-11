@@ -1,14 +1,15 @@
-import { Search, X, Kanban, List } from 'lucide-react'
-import { PRIORITIES, TASK_TYPES } from '../constants'
+import { Search, X, Layers, Kanban, List } from 'lucide-react'
+import { PRIORITIES } from '../constants'
 import { useTaskStore } from '../store'
 import { UserAvatar } from './UserAvatar'
 
 export function FilterBar() {
-  const { filters, view, setFilters, resetFilters, setView, users } = useTaskStore()
+  const { filters, view, setFilters, resetFilters, setView, users, epics } = useTaskStore()
+
   const hasActiveFilters =
     filters.search !== '' ||
     filters.priority !== 'all' ||
-    filters.type !== 'all' ||
+    filters.epicId !== 'all' ||
     filters.assigneeId !== 'all'
 
   return (
@@ -29,6 +30,21 @@ export function FilterBar() {
         />
       </div>
 
+      {/* epic filter */}
+      {epics.length > 0 && (
+        <select
+          value={filters.epicId}
+          onChange={(e) => setFilters({ epicId: e.target.value })}
+          className="rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-sm text-slate-700 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+          aria-label="Filter by epic"
+        >
+          <option value="all">All epics</option>
+          {epics.map((e) => (
+            <option key={e.id} value={e.id}>{e.title}</option>
+          ))}
+        </select>
+      )}
+
       {/* priority filter */}
       <select
         value={filters.priority}
@@ -40,26 +56,7 @@ export function FilterBar() {
       >
         <option value="all">All priorities</option>
         {PRIORITIES.map((p) => (
-          <option key={p.value} value={p.value}>
-            {p.label}
-          </option>
-        ))}
-      </select>
-
-      {/* type filter */}
-      <select
-        value={filters.type}
-        onChange={(e) =>
-          setFilters({ type: e.target.value as typeof filters.type })
-        }
-        className="rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-sm text-slate-700 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-        aria-label="Filter by type"
-      >
-        <option value="all">All types</option>
-        {TASK_TYPES.map((t) => (
-          <option key={t.value} value={t.value}>
-            {t.label}
-          </option>
+          <option key={p.value} value={p.value}>{p.label}</option>
         ))}
       </select>
 
@@ -110,12 +107,21 @@ export function FilterBar() {
       >
         <button
           type="button"
+          onClick={() => setView('hierarchy')}
+          aria-pressed={view === 'hierarchy'}
+          className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/20 ${
+            view === 'hierarchy' ? 'bg-brand-500 text-white' : 'text-slate-600 hover:bg-slate-50'
+          }`}
+        >
+          <Layers className="h-4 w-4" aria-hidden="true" />
+          Hierarchy
+        </button>
+        <button
+          type="button"
           onClick={() => setView('kanban')}
           aria-pressed={view === 'kanban'}
           className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/20 ${
-            view === 'kanban'
-              ? 'bg-brand-500 text-white'
-              : 'text-slate-600 hover:bg-slate-50'
+            view === 'kanban' ? 'bg-brand-500 text-white' : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
           <Kanban className="h-4 w-4" aria-hidden="true" />
@@ -126,9 +132,7 @@ export function FilterBar() {
           onClick={() => setView('list')}
           aria-pressed={view === 'list'}
           className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/20 ${
-            view === 'list'
-              ? 'bg-brand-500 text-white'
-              : 'text-slate-600 hover:bg-slate-50'
+            view === 'list' ? 'bg-brand-500 text-white' : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
           <List className="h-4 w-4" aria-hidden="true" />

@@ -2,18 +2,35 @@ import { useState } from 'react'
 import { Plus, Zap, Users } from 'lucide-react'
 import { useTaskStore } from './store'
 import { FilterBar } from './components/FilterBar'
+import { HierarchyView } from './components/HierarchyView'
 import { KanbanView } from './components/KanbanView'
 import { ListView } from './components/ListView'
 import { TaskModal } from './components/TaskModal'
-import { NewTaskModal } from './components/NewTaskModal'
+import { EpicModal } from './components/EpicModal'
+import { StoryModal } from './components/StoryModal'
+import { CreateModal, type CreateMode } from './components/CreateModal'
 import { UserManager } from './components/UserManager'
 import { StatsBar } from './components/StatsBar'
 
 export default function App() {
   const view = useTaskStore((s) => s.view)
+  const selectedEpicId = useTaskStore((s) => s.selectedEpicId)
+  const selectedStoryId = useTaskStore((s) => s.selectedStoryId)
   const selectedTaskId = useTaskStore((s) => s.selectedTaskId)
-  const [showNewTask, setShowNewTask] = useState(false)
+  const setSelectedEpicId = useTaskStore((s) => s.setSelectedEpicId)
+  const setSelectedStoryId = useTaskStore((s) => s.setSelectedStoryId)
+  const setSelectedTaskId = useTaskStore((s) => s.setSelectedTaskId)
+
+  const [showCreate, setShowCreate] = useState<{ mode: CreateMode; epicId?: string; storyId?: string } | null>(null)
   const [showUserManager, setShowUserManager] = useState(false)
+
+  function openCreateStory(epicId: string) {
+    setShowCreate({ mode: 'story', epicId })
+  }
+
+  function openCreateTask(storyId: string) {
+    setShowCreate({ mode: 'task', storyId })
+  }
 
   return (
     <div className="min-h-screen bg-slate-100 font-sans">
@@ -48,11 +65,11 @@ export default function App() {
             </button>
             <button
               type="button"
-              onClick={() => setShowNewTask(true)}
+              onClick={() => setShowCreate({ mode: 'task' })}
               className="flex items-center gap-1.5 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500/40 transition-colors"
             >
               <Plus className="h-4 w-4" aria-hidden="true" />
-              New Task
+              New
             </button>
           </nav>
         </div>
@@ -66,13 +83,38 @@ export default function App() {
         {/* filters + view toggle */}
         <FilterBar />
 
-        {/* board / list */}
-        {view === 'kanban' ? <KanbanView /> : <ListView />}
+        {/* view */}
+        {view === 'hierarchy' && <HierarchyView />}
+        {view === 'kanban' && <KanbanView />}
+        {view === 'list' && <ListView />}
       </main>
 
       {/* modals */}
-      {selectedTaskId && <TaskModal />}
-      {showNewTask && <NewTaskModal onClose={() => setShowNewTask(false)} />}
+      {selectedEpicId && (
+        <EpicModal
+          epicId={selectedEpicId}
+          onClose={() => setSelectedEpicId(null)}
+          onAddStory={openCreateStory}
+        />
+      )}
+      {selectedStoryId && (
+        <StoryModal
+          storyId={selectedStoryId}
+          onClose={() => setSelectedStoryId(null)}
+          onAddTask={openCreateTask}
+        />
+      )}
+      {selectedTaskId && (
+        <TaskModal taskId={selectedTaskId} onClose={() => setSelectedTaskId(null)} />
+      )}
+      {showCreate && (
+        <CreateModal
+          initialMode={showCreate.mode}
+          initialEpicId={showCreate.epicId}
+          initialStoryId={showCreate.storyId}
+          onClose={() => setShowCreate(null)}
+        />
+      )}
       {showUserManager && <UserManager onClose={() => setShowUserManager(false)} />}
     </div>
   )
