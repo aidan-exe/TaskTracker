@@ -17,7 +17,7 @@ export function FilterBar() {
       {/* search */}
       <div className="relative min-w-[220px] flex-1">
         <Search
-          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+          className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500"
           aria-hidden="true"
         />
         <input
@@ -25,7 +25,7 @@ export function FilterBar() {
           placeholder="Search tasks…"
           value={filters.search}
           onChange={(e) => setFilters({ search: e.target.value })}
-          className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+          className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 py-2 pl-9 pr-3 text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-brand-500 dark:focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:focus:ring-brand-400/20"
           aria-label="Search tasks"
         />
       </div>
@@ -35,7 +35,7 @@ export function FilterBar() {
         <select
           value={filters.epicId}
           onChange={(e) => setFilters({ epicId: e.target.value })}
-          className="rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-sm text-slate-700 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+          className="rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 py-2 pl-3 pr-8 text-sm text-slate-700 dark:text-slate-200 focus:border-brand-500 dark:focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:focus:ring-brand-400/20"
           aria-label="Filter by epic"
         >
           <option value="all">All epics</option>
@@ -51,7 +51,7 @@ export function FilterBar() {
         onChange={(e) =>
           setFilters({ priority: e.target.value as typeof filters.priority })
         }
-        className="rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-sm text-slate-700 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+        className="rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 py-2 pl-3 pr-8 text-sm text-slate-700 dark:text-slate-200 focus:border-brand-500 dark:focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:focus:ring-brand-400/20"
         aria-label="Filter by priority"
       >
         <option value="all">All priorities</option>
@@ -72,7 +72,7 @@ export function FilterBar() {
             onChange={(e) =>
               setFilters({ assigneeId: e.target.value as typeof filters.assigneeId })
             }
-            className="rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-8 text-sm text-slate-700 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            className="rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 py-2 pl-3 pr-8 text-sm text-slate-700 dark:text-slate-200 focus:border-brand-500 dark:focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:focus:ring-brand-400/20"
             aria-label="Filter by assignee"
           >
             <option value="all">All assignees</option>
@@ -89,7 +89,7 @@ export function FilterBar() {
         <button
           type="button"
           onClick={resetFilters}
-          className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+          className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
         >
           <X className="h-3.5 w-3.5" aria-hidden="true" />
           Clear
@@ -101,7 +101,7 @@ export function FilterBar() {
 
       {/* view toggle */}
       <div
-        className="flex rounded-lg border border-slate-200 bg-white p-0.5"
+        className="flex rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-0.5"
         role="group"
         aria-label="View toggle"
       >
@@ -110,7 +110,7 @@ export function FilterBar() {
           onClick={() => setView('hierarchy')}
           aria-pressed={view === 'hierarchy'}
           className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/20 ${
-            view === 'hierarchy' ? 'bg-brand-500 text-white' : 'text-slate-600 hover:bg-slate-50'
+            view === 'hierarchy' ? 'bg-brand-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
           }`}
         >
           <Layers className="h-4 w-4" aria-hidden="true" />
@@ -121,7 +121,7 @@ export function FilterBar() {
           onClick={() => setView('kanban')}
           aria-pressed={view === 'kanban'}
           className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/20 ${
-            view === 'kanban' ? 'bg-brand-500 text-white' : 'text-slate-600 hover:bg-slate-50'
+            view === 'kanban' ? 'bg-brand-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
           }`}
         >
           <Kanban className="h-4 w-4" aria-hidden="true" />
@@ -132,7 +132,7 @@ export function FilterBar() {
           onClick={() => setView('list')}
           aria-pressed={view === 'list'}
           className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/20 ${
-            view === 'list' ? 'bg-brand-500 text-white' : 'text-slate-600 hover:bg-slate-50'
+            view === 'list' ? 'bg-brand-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
           }`}
         >
           <List className="h-4 w-4" aria-hidden="true" />

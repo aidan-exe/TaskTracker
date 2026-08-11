@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
-import { X, Trash2, Edit3, Check } from 'lucide-react'
+import { X, Trash2, Edit3, Check, MessageSquare } from 'lucide-react'
 import { useTaskStore } from '../store'
 import { STATUSES, PRIORITIES } from '../constants'
 import { StatusBadge } from './StatusBadge'
 import { PriorityBadge } from './PriorityBadge'
 import { UserAvatar } from './UserAvatar'
+import { CommentList } from './CommentList'
+import { CommentForm } from './CommentForm'
 import type { Status, Priority } from '../types'
 
 const fieldClass =
-  'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20'
+  'w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:border-brand-500 dark:focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:focus:ring-brand-400/20'
 const labelClass =
-  'block text-xs font-medium uppercase tracking-wide text-slate-400 mb-1'
+  'block text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1'
 
 interface Props {
   taskId: string
@@ -18,7 +20,10 @@ interface Props {
 }
 
 export function TaskModal({ taskId, onClose }: Props) {
-  const { getTaskById, getStoryById, getEpicById, updateTask, deleteTask, moveTask, getUserById, users } = useTaskStore()
+  const { 
+    getTaskById, getStoryById, getEpicById, updateTask, deleteTask, moveTask, getUserById, users,
+    addTaskComment, deleteTaskComment,
+  } = useTaskStore()
 
   const task = getTaskById(taskId)
   const overlayRef = useRef<HTMLDivElement>(null)
@@ -87,6 +92,14 @@ export function TaskModal({ taskId, onClose }: Props) {
     }
   }
 
+  function handleAddComment(content: string, authorId: string) {
+    addTaskComment(taskId, { content, authorId })
+  }
+
+  function handleDeleteComment(commentId: string) {
+    deleteTaskComment(taskId, commentId)
+  }
+
   return (
     <div
       ref={overlayRef}
@@ -96,12 +109,12 @@ export function TaskModal({ taskId, onClose }: Props) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
       onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
     >
-      <div className="relative flex w-full max-w-2xl max-h-[90vh] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div className="relative flex w-full max-w-2xl max-h-[90vh] flex-col overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
         {/* epic accent bar */}
         <div className="h-1.5 w-full" style={{ backgroundColor: epic?.color ?? '#94a3b8' }} />
 
         {/* header */}
-        <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-4">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-700 px-6 py-4">
           <div className="flex items-center gap-2 flex-wrap">
             {/* breadcrumb */}
             {epic && (
@@ -128,17 +141,17 @@ export function TaskModal({ taskId, onClose }: Props) {
               </button>
             ) : (
               <button type="button" onClick={() => setEditing(true)}
-                className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500/20">
+                className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500/20">
                 <Edit3 className="h-4 w-4" /> Edit
               </button>
             )}
             <button type="button" onClick={handleDelete}
-              className="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+              className="flex items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-900 px-3 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 focus:outline-none focus:ring-2 focus:ring-red-500/20"
               aria-label="Delete task">
               <Trash2 className="h-4 w-4" />
             </button>
             <button type="button" onClick={onClose}
-              className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+              className="rounded-lg border border-slate-200 dark:border-slate-600 p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               aria-label="Close">
               <X className="h-5 w-5" />
             </button>
@@ -151,7 +164,7 @@ export function TaskModal({ taskId, onClose }: Props) {
             <input value={title} onChange={(e) => setTitle(e.target.value)}
               className={fieldClass + ' text-lg font-semibold'} aria-label="Task title" />
           ) : (
-            <h2 className="text-lg font-semibold text-slate-800">{task.title}</h2>
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{task.title}</h2>
           )}
 
           <div>
@@ -160,8 +173,8 @@ export function TaskModal({ taskId, onClose }: Props) {
               <textarea value={description} onChange={(e) => setDescription(e.target.value)}
                 rows={4} className={fieldClass} />
             ) : (
-              <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
-                {task.description || <em className="text-slate-400">No description</em>}
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                {task.description || <em className="text-slate-400 dark:text-slate-500">No description</em>}
               </p>
             )}
           </div>
@@ -195,7 +208,7 @@ export function TaskModal({ taskId, onClose }: Props) {
                 <input type="number" min={0} max={100} value={storyPoints}
                   onChange={(e) => setStoryPoints(e.target.value)} placeholder="—" className={fieldClass} />
               ) : (
-                <span className="text-sm font-medium text-slate-700">{task.storyPoints ?? '—'}</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{task.storyPoints ?? '—'}</span>
               )}
             </div>
 
@@ -204,7 +217,7 @@ export function TaskModal({ taskId, onClose }: Props) {
               {editing ? (
                 <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={fieldClass} />
               ) : (
-                <span className="text-sm font-medium text-slate-700">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                   {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                 </span>
               )}
@@ -226,10 +239,10 @@ export function TaskModal({ taskId, onClose }: Props) {
               ) : assignee ? (
                 <div className="flex items-center gap-2">
                   <UserAvatar user={assignee} size="sm" showTooltip={false} />
-                  <span className="text-sm font-medium text-slate-700">{assignee.name}</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{assignee.name}</span>
                 </div>
               ) : (
-                <span className="text-sm text-slate-400">Unassigned</span>
+                <span className="text-sm text-slate-400 dark:text-slate-500">Unassigned</span>
               )}
             </div>
           </div>
@@ -239,11 +252,11 @@ export function TaskModal({ taskId, onClose }: Props) {
             <label className={labelClass}>Labels</label>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {(editing ? labels : task.labels).map((l) => (
-                <span key={l} className="flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                <span key={l} className="flex items-center gap-1 rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
                   {l}
                   {editing && (
                     <button type="button" onClick={() => setLabels(labels.filter((x) => x !== l))}
-                      className="text-slate-400 hover:text-slate-700" aria-label={`Remove ${l}`}>
+                      className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300" aria-label={`Remove ${l}`}>
                       <X className="h-2.5 w-2.5" />
                     </button>
                   )}
@@ -256,9 +269,24 @@ export function TaskModal({ taskId, onClose }: Props) {
             )}
           </div>
 
-          <div className="flex flex-wrap gap-4 border-t border-slate-100 pt-4 text-xs text-slate-400">
+          <div className="flex flex-wrap gap-4 border-t border-slate-100 dark:border-slate-700 pt-4 text-xs text-slate-400 dark:text-slate-500">
             <span>Created {new Date(task.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
             <span>Updated {new Date(task.updatedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+          </div>
+
+          {/* comments section */}
+          <div className="border-t border-slate-200 dark:border-slate-700 pt-5">
+            <div className="flex items-center gap-2 mb-4">
+              <MessageSquare className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+                Comments ({task.comments.length})
+              </h3>
+            </div>
+            
+            <div className="space-y-4">
+              <CommentList comments={task.comments} onDelete={handleDeleteComment} />
+              <CommentForm onSubmit={handleAddComment} />
+            </div>
           </div>
         </div>
       </div>

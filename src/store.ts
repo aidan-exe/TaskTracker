@@ -6,8 +6,12 @@ import type {
   Story, NewStory,
   Task, NewTask,
   User, NewUser,
+  NewComment,
+  Notification,
+  Voucher, VoucherType,
   Status, FilterState, View, Progress,
 } from './types'
+import { POINTS, VOUCHER_COSTS } from './types'
 
 // ── Store interface ───────────────────────────────────────────────────────────
 
@@ -16,9 +20,11 @@ interface AppStore {
   stories: Story[]
   tasks: Task[]
   users: User[]
+  notifications: Notification[]
 
   filters: FilterState
   view: View
+  darkMode: boolean
 
   // Selected items for detail modals
   selectedEpicId: string | null
@@ -35,17 +41,28 @@ interface AppStore {
   updateStory: (id: string, updates: Partial<NewStory>) => void
   deleteStory: (id: string) => void           // cascades to tasks
   moveStory: (id: string, status: Status) => void
+  addStoryComment: (storyId: string, comment: NewComment) => void
+  deleteStoryComment: (storyId: string, commentId: string) => void
 
   // ── Task actions ────────────────────────────────────────────────────────────
   addTask: (task: NewTask) => string          // returns new id
   updateTask: (id: string, updates: Partial<NewTask>) => void
   deleteTask: (id: string) => void
   moveTask: (id: string, status: Status) => void
+  addTaskComment: (taskId: string, comment: NewComment) => void
+  deleteTaskComment: (taskId: string, commentId: string) => void
 
   // ── User actions ────────────────────────────────────────────────────────────
   addUser: (user: NewUser) => void
   updateUser: (id: string, updates: Partial<NewUser>) => void
   deleteUser: (id: string) => void
+  awardPoints: (userId: string, points: number, reason: string) => void
+  redeemVoucher: (userId: string, voucherType: VoucherType) => boolean
+
+  // ── Notification actions ────────────────────────────────────────────────────
+  addNotification: (notification: Omit<Notification, 'id' | 'createdAt' | 'dismissed'>) => void
+  dismissNotification: (id: string) => void
+  clearAllNotifications: () => void
 
   // ── UI actions ──────────────────────────────────────────────────────────────
   setFilters: (filters: Partial<FilterState>) => void
@@ -54,6 +71,7 @@ interface AppStore {
   setSelectedEpicId: (id: string | null) => void
   setSelectedStoryId: (id: string | null) => void
   setSelectedTaskId: (id: string | null) => void
+  toggleDarkMode: () => void
 
   // ── Derived helpers ─────────────────────────────────────────────────────────
   getEpicById: (id: string | null) => Epic | undefined
@@ -90,15 +108,259 @@ function makeProgress(items: { status: Status }[]): Progress {
 
 // ── Store ─────────────────────────────────────────────────────────────────────
 
+// ── Dummy Data ────────────────────────────────────────────────────────────────
+
+const DUMMY_USERS: User[] = [
+  {
+    id: 'user-1',
+    name: 'Alex Chen',
+    email: 'alex@tasktracker.dev',
+    avatarColor: '#6366f1',
+    points: 80, // Just enough to test coffee redemption (needs 100)
+    vouchers: [],
+    createdAt: new Date('2024-01-15').toISOString(),
+  },
+  {
+    id: 'user-2',
+    name: 'Sam Rivera',
+    email: 'sam@tasktracker.dev',
+    avatarColor: '#ec4899',
+    points: 120,
+    vouchers: [
+      {
+        id: 'voucher-1',
+        type: 'coffee',
+        redeemedAt: new Date('2024-02-01').toISOString(),
+        expiresAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days from now
+      },
+    ],
+    createdAt: new Date('2024-01-15').toISOString(),
+  },
+  {
+    id: 'user-3',
+    name: 'Jordan Lee',
+    email: 'jordan@tasktracker.dev',
+    avatarColor: '#10b981',
+    points: 45,
+    vouchers: [],
+    createdAt: new Date('2024-01-20').toISOString(),
+  },
+]
+
+const DUMMY_EPICS: Epic[] = [
+  {
+    id: 'epic-1',
+    title: 'User Authentication System',
+    description: 'Implement secure user login, registration, and session management',
+    status: 'in_progress',
+    priority: 'high',
+    color: '#6366f1',
+    labels: ['backend', 'security'],
+    dueDate: new Date('2024-03-15').toISOString(),
+    createdAt: new Date('2024-02-01').toISOString(),
+    updatedAt: new Date('2024-02-05').toISOString(),
+  },
+  {
+    id: 'epic-2',
+    title: 'Gamification Features',
+    description: 'Add points, badges, and rewards to increase user engagement',
+    status: 'in_progress',
+    priority: 'medium',
+    color: '#ec4899',
+    labels: ['frontend', 'ux'],
+    dueDate: new Date('2024-03-30').toISOString(),
+    createdAt: new Date('2024-02-03').toISOString(),
+    updatedAt: new Date('2024-02-08').toISOString(),
+  },
+]
+
+const DUMMY_STORIES: Story[] = [
+  {
+    id: 'story-1',
+    epicId: 'epic-1',
+    title: 'User login with email and password',
+    description: 'Users should be able to log in with their email and password credentials',
+    status: 'done',
+    priority: 'high',
+    labels: ['auth'],
+    storyPoints: 5,
+    assigneeId: 'user-2',
+    dueDate: null,
+    comments: [
+      {
+        id: 'comment-1',
+        authorId: 'user-1',
+        content: 'Should we add "remember me" functionality?',
+        createdAt: new Date('2024-02-02').toISOString(),
+      },
+      {
+        id: 'comment-2',
+        authorId: 'user-2',
+        content: 'Good idea! Added to the requirements.',
+        createdAt: new Date('2024-02-02T10:30:00').toISOString(),
+      },
+    ],
+    createdAt: new Date('2024-02-01').toISOString(),
+    updatedAt: new Date('2024-02-07').toISOString(),
+  },
+  {
+    id: 'story-2',
+    epicId: 'epic-1',
+    title: 'Password reset flow',
+    description: 'Allow users to reset their password via email verification',
+    status: 'in_progress',
+    priority: 'medium',
+    labels: ['auth', 'email'],
+    storyPoints: 3,
+    assigneeId: 'user-1',
+    dueDate: null,
+    comments: [],
+    createdAt: new Date('2024-02-02').toISOString(),
+    updatedAt: new Date('2024-02-08').toISOString(),
+  },
+  {
+    id: 'story-3',
+    epicId: 'epic-2',
+    title: 'Points system for task completion',
+    description: 'Award points when users complete tasks and stories - Move this to DONE to earn 50 points!',
+    status: 'in_progress',
+    priority: 'high',
+    labels: ['gamification'],
+    storyPoints: 8,
+    assigneeId: 'user-1',
+    dueDate: null,
+    comments: [],
+    createdAt: new Date('2024-02-05').toISOString(),
+    updatedAt: new Date('2024-02-09').toISOString(),
+  },
+  {
+    id: 'story-4',
+    epicId: 'epic-2',
+    title: 'Coffee voucher rewards',
+    description: 'Allow users to redeem points for coffee vouchers',
+    status: 'todo',
+    priority: 'medium',
+    labels: ['gamification', 'rewards'],
+    storyPoints: 5,
+    assigneeId: 'user-3',
+    dueDate: null,
+    comments: [],
+    createdAt: new Date('2024-02-06').toISOString(),
+    updatedAt: new Date('2024-02-06').toISOString(),
+  },
+]
+
+const DUMMY_TASKS: Task[] = [
+  {
+    id: 'task-1',
+    storyId: 'story-1',
+    title: 'Design login form UI',
+    description: 'Create mockups for the login page with email and password fields',
+    status: 'done',
+    priority: 'high',
+    labels: ['design'],
+    storyPoints: 2,
+    assigneeId: 'user-1',
+    dueDate: null,
+    comments: [],
+    createdAt: new Date('2024-02-01').toISOString(),
+    updatedAt: new Date('2024-02-03').toISOString(),
+  },
+  {
+    id: 'task-2',
+    storyId: 'story-1',
+    title: 'Implement login API endpoint',
+    description: 'Create POST /auth/login endpoint with JWT token generation',
+    status: 'done',
+    priority: 'high',
+    labels: ['backend', 'api'],
+    storyPoints: 3,
+    assigneeId: 'user-2',
+    dueDate: null,
+    comments: [],
+    createdAt: new Date('2024-02-02').toISOString(),
+    updatedAt: new Date('2024-02-05').toISOString(),
+  },
+  {
+    id: 'task-3',
+    storyId: 'story-2',
+    title: 'Create "Forgot Password" link on login page',
+    description: 'Add UI element and routing for password reset flow',
+    status: 'in_progress',
+    priority: 'medium',
+    labels: ['frontend'],
+    storyPoints: 1,
+    assigneeId: 'user-1',
+    dueDate: null,
+    comments: [],
+    createdAt: new Date('2024-02-03').toISOString(),
+    updatedAt: new Date('2024-02-08').toISOString(),
+  },
+  {
+    id: 'task-4',
+    storyId: 'story-2',
+    title: 'Send password reset email',
+    description: 'Implement email service to send reset links',
+    status: 'todo',
+    priority: 'medium',
+    labels: ['backend', 'email'],
+    storyPoints: 2,
+    assigneeId: 'user-3',
+    dueDate: null,
+    comments: [],
+    createdAt: new Date('2024-02-03').toISOString(),
+    updatedAt: new Date('2024-02-03').toISOString(),
+  },
+  {
+    id: 'task-5',
+    storyId: 'story-3',
+    title: 'Add points to user model',
+    description: 'Extend User type with points field',
+    status: 'done',
+    priority: 'high',
+    labels: ['backend'],
+    storyPoints: 2,
+    assigneeId: 'user-1',
+    dueDate: null,
+    comments: [],
+    createdAt: new Date('2024-02-05').toISOString(),
+    updatedAt: new Date('2024-02-07').toISOString(),
+  },
+  {
+    id: 'task-6',
+    storyId: 'story-3',
+    title: 'Award points on task completion - Move this to DONE to earn 10 points!',
+    description: 'Implement logic to award 10 points when task status changes to done',
+    status: 'in_progress',
+    priority: 'high',
+    labels: ['backend', 'gamification'],
+    storyPoints: 3,
+    assigneeId: 'user-1',
+    dueDate: null,
+    comments: [
+      {
+        id: 'comment-3',
+        authorId: 'user-2',
+        content: 'Make sure to prevent point farming by only awarding once',
+        createdAt: new Date('2024-02-08').toISOString(),
+      },
+    ],
+    createdAt: new Date('2024-02-05').toISOString(),
+    updatedAt: new Date('2024-02-09').toISOString(),
+  },
+]
+
 export const useTaskStore = create<AppStore>()(
   persist(
     (set, get) => ({
-      epics: [],
-      stories: [],
-      tasks: [],
-      users: [],
+      epics: DUMMY_EPICS,
+      stories: DUMMY_STORIES,
+      tasks: DUMMY_TASKS,
+      users: DUMMY_USERS,
+      notifications: [],
       filters: DEFAULT_FILTERS,
-      view: 'hierarchy',
+      view: 'kanban', // Start in kanban view to easily drag and drop
+      darkMode: false,
       selectedEpicId: null,
       selectedStoryId: null,
       selectedTaskId: null,
@@ -141,7 +403,7 @@ export const useTaskStore = create<AppStore>()(
         set((s) => ({
           stories: [
             ...s.stories,
-            { ...story, id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { ...story, comments: [], id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
           ],
         }))
         return id
@@ -162,9 +424,63 @@ export const useTaskStore = create<AppStore>()(
         })),
 
       moveStory: (id, status) =>
+        set((s) => {
+          const story = s.stories.find((st) => st.id === id)
+          const oldStatus = story?.status
+          const wasCompleted = oldStatus === 'done'
+          const isNowCompleted = status === 'done'
+          
+          // Award points if story is being marked as done (and wasn't before)
+          if (story && isNowCompleted && !wasCompleted && story.assigneeId) {
+            get().awardPoints(story.assigneeId, POINTS.COMPLETE_STORY, `Completed story: ${story.title}`)
+          }
+
+          // Create notification for status change
+          if (story && oldStatus !== status) {
+            get().addNotification({
+              type: 'status_change',
+              message: `Story "${story.title}" moved from ${oldStatus} to ${status}`,
+              userId: story.assigneeId || '',
+              itemType: 'story',
+              itemId: id,
+              oldStatus,
+              newStatus: status,
+            })
+          }
+
+          return {
+            stories: s.stories.map((st) =>
+              st.id === id ? { ...st, status, updatedAt: new Date().toISOString() } : st
+            ),
+          }
+        }),
+
+      addStoryComment: (storyId, comment) =>
         set((s) => ({
           stories: s.stories.map((st) =>
-            st.id === id ? { ...st, status, updatedAt: new Date().toISOString() } : st
+            st.id === storyId
+              ? {
+                  ...st,
+                  comments: [
+                    ...st.comments,
+                    { ...comment, id: uuidv4(), createdAt: new Date().toISOString() },
+                  ],
+                  updatedAt: new Date().toISOString(),
+                }
+              : st
+          ),
+        })),
+
+      deleteStoryComment: (storyId, commentId) =>
+        set((s) => ({
+          stories: s.stories.map((st) =>
+            st.id === storyId
+              ? {
+                  ...st,
+                  comments: st.comments.filter((c) => c.id !== commentId),
+                  updatedAt: new Date().toISOString(),
+                }
+              : st
           ),
         })),
 
@@ -175,7 +491,7 @@ export const useTaskStore = create<AppStore>()(
         set((s) => ({
           tasks: [
             ...s.tasks,
-            { ...task, id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            { ...task, comments: [], id, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
           ],
         }))
         return id
@@ -195,9 +511,63 @@ export const useTaskStore = create<AppStore>()(
         })),
 
       moveTask: (id, status) =>
+        set((s) => {
+          const task = s.tasks.find((t) => t.id === id)
+          const oldStatus = task?.status
+          const wasCompleted = oldStatus === 'done'
+          const isNowCompleted = status === 'done'
+          
+          // Award points if task is being marked as done (and wasn't before)
+          if (task && isNowCompleted && !wasCompleted && task.assigneeId) {
+            get().awardPoints(task.assigneeId, POINTS.COMPLETE_TASK, `Completed task: ${task.title}`)
+          }
+
+          // Create notification for status change
+          if (task && oldStatus !== status) {
+            get().addNotification({
+              type: 'status_change',
+              message: `Task "${task.title}" moved from ${oldStatus} to ${status}`,
+              userId: task.assigneeId || '',
+              itemType: 'task',
+              itemId: id,
+              oldStatus,
+              newStatus: status,
+            })
+          }
+
+          return {
+            tasks: s.tasks.map((t) =>
+              t.id === id ? { ...t, status, updatedAt: new Date().toISOString() } : t
+            ),
+          }
+        }),
+
+      addTaskComment: (taskId, comment) =>
         set((s) => ({
           tasks: s.tasks.map((t) =>
-            t.id === id ? { ...t, status, updatedAt: new Date().toISOString() } : t
+            t.id === taskId
+              ? {
+                  ...t,
+                  comments: [
+                    ...t.comments,
+                    { ...comment, id: uuidv4(), createdAt: new Date().toISOString() },
+                  ],
+                  updatedAt: new Date().toISOString(),
+                }
+              : t
+          ),
+        })),
+
+      deleteTaskComment: (taskId, commentId) =>
+        set((s) => ({
+          tasks: s.tasks.map((t) =>
+            t.id === taskId
+              ? {
+                  ...t,
+                  comments: t.comments.filter((c) => c.id !== commentId),
+                  updatedAt: new Date().toISOString(),
+                }
+              : t
           ),
         })),
 
@@ -207,7 +577,7 @@ export const useTaskStore = create<AppStore>()(
         set((s) => ({
           users: [
             ...s.users,
-            { ...user, id: uuidv4(), createdAt: new Date().toISOString() },
+            { ...user, id: uuidv4(), points: 0, vouchers: [], createdAt: new Date().toISOString() },
           ],
         })),
 
@@ -227,6 +597,80 @@ export const useTaskStore = create<AppStore>()(
           ),
         })),
 
+      awardPoints: (userId, points, reason) =>
+        set((s) => {
+          const user = s.users.find((u) => u.id === userId)
+          if (!user) return s
+
+          // Add notification for points awarded
+          get().addNotification({
+            type: 'points_awarded',
+            message: `+${points} points: ${reason}`,
+            userId,
+            itemType: 'task',
+            itemId: '',
+          })
+
+          return {
+            users: s.users.map((u) =>
+              u.id === userId ? { ...u, points: u.points + points } : u
+            ),
+          }
+        }),
+
+      redeemVoucher: (userId, voucherType) => {
+        const user = get().users.find((u) => u.id === userId)
+        if (!user) return false
+
+        const cost = VOUCHER_COSTS[voucherType]
+        if (user.points < cost) return false
+
+        const voucher: Voucher = {
+          id: uuidv4(),
+          type: voucherType,
+          redeemedAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+        }
+
+        set((s) => ({
+          users: s.users.map((u) =>
+            u.id === userId
+              ? { ...u, points: u.points - cost, vouchers: [...u.vouchers, voucher] }
+              : u
+          ),
+        }))
+
+        get().addNotification({
+          type: 'voucher_redeemed',
+          message: `Redeemed ${voucherType} voucher!`,
+          userId,
+          itemType: 'voucher',
+          itemId: voucher.id,
+        })
+
+        return true
+      },
+
+      // ── Notification actions ──────────────────────────────────────────────
+
+      addNotification: (notification) =>
+        set((s) => ({
+          notifications: [
+            ...s.notifications,
+            { ...notification, id: uuidv4(), createdAt: new Date().toISOString(), dismissed: false },
+          ],
+        })),
+
+      dismissNotification: (id) =>
+        set((s) => ({
+          notifications: s.notifications.map((n) =>
+            n.id === id ? { ...n, dismissed: true } : n
+          ),
+        })),
+
+      clearAllNotifications: () =>
+        set({ notifications: [] }),
+
       // ── UI actions ────────────────────────────────────────────────────────
 
       setFilters: (filters) =>
@@ -239,6 +683,8 @@ export const useTaskStore = create<AppStore>()(
       setSelectedEpicId: (id) => set({ selectedEpicId: id }),
       setSelectedStoryId: (id) => set({ selectedStoryId: id }),
       setSelectedTaskId: (id) => set({ selectedTaskId: id }),
+
+      toggleDarkMode: () => set((s) => ({ darkMode: !s.darkMode })),
 
       // ── Derived helpers ───────────────────────────────────────────────────
 

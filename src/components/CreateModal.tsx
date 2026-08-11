@@ -17,9 +17,9 @@ interface Props {
 }
 
 const fieldClass =
-  'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20'
+  'w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:border-brand-500 dark:focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:focus:ring-brand-400/20'
 const labelClass =
-  'block text-xs font-medium uppercase tracking-wide text-slate-400 mb-1'
+  'block text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1'
 
 const TABS: { mode: CreateMode; icon: string; label: string; color: string }[] = [
   { mode: 'epic',  icon: '◆', label: 'Epic',  color: 'text-indigo-600' },
@@ -119,19 +119,19 @@ export function CreateModal({ initialMode = 'task', initialEpicId, initialStoryI
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl">
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
         {/* header */}
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <h2 className="text-base font-semibold text-slate-800">Create New</h2>
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 px-6 py-4">
+          <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">Create New</h2>
           <button type="button" onClick={onClose}
-            className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            className="rounded-lg border border-slate-200 dark:border-slate-600 p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             aria-label="Close">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* type tabs */}
-        <div className="flex border-b border-slate-100 px-6">
+        <div className="flex border-b border-slate-100 dark:border-slate-700 px-6">
           {TABS.map((tab) => (
             <button
               key={tab.mode}
@@ -140,7 +140,7 @@ export function CreateModal({ initialMode = 'task', initialEpicId, initialStoryI
               className={`flex items-center gap-1.5 border-b-2 px-4 py-3 text-sm font-semibold transition-colors focus:outline-none ${
                 mode === tab.mode
                   ? `border-brand-500 ${tab.color}`
-                  : 'border-transparent text-slate-400 hover:text-slate-600'
+                  : 'border-transparent text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400'
               }`}
             >
               <span>{tab.icon}</span>
@@ -163,7 +163,7 @@ export function CreateModal({ initialMode = 'task', initialEpicId, initialStoryI
                 {epics.map((ep) => <option key={ep.id} value={ep.id}>{ep.title}</option>)}
               </select>
               {epics.length === 0 && (
-                <p className="mt-1 text-xs text-amber-600">No epics yet — create one first.</p>
+                <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">No epics yet — create one first.</p>
               )}
             </div>
           )}
@@ -191,7 +191,7 @@ export function CreateModal({ initialMode = 'task', initialEpicId, initialStoryI
                   {storiesForEpic.map((st) => <option key={st.id} value={st.id}>{st.title}</option>)}
                 </select>
                 {stories.length === 0 && (
-                  <p className="mt-1 text-xs text-amber-600">No stories yet — create a story first.</p>
+                  <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">No stories yet — create a story first.</p>
                 )}
               </div>
             </div>
@@ -212,7 +212,7 @@ export function CreateModal({ initialMode = 'task', initialEpicId, initialStoryI
               className={fieldClass} aria-required="true"
               aria-describedby={error ? 'create-error' : undefined} />
             {error && (
-              <p id="create-error" role="alert" className="mt-1 text-xs text-red-500">{error}</p>
+              <p id="create-error" role="alert" className="mt-1 text-xs text-red-500 dark:text-red-400">{error}</p>
             )}
           </div>
 
@@ -254,7 +254,7 @@ export function CreateModal({ initialMode = 'task', initialEpicId, initialStoryI
               <div>
                 <label htmlFor="create-assignee" className={labelClass}>Assignee</label>
                 {users.length === 0 ? (
-                  <p className="text-xs text-slate-400 italic mt-2">No users yet.</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 italic mt-2">No users yet.</p>
                 ) : (
                   <div className="flex items-center gap-2">
                     {assigneeId && users.find((u) => u.id === assigneeId) && (
@@ -279,7 +279,7 @@ export function CreateModal({ initialMode = 'task', initialEpicId, initialStoryI
                 {EPIC_COLORS.map((c) => (
                   <button key={c.value} type="button" onClick={() => setEpicColor(c.value)}
                     className={`h-7 w-7 rounded-full transition-transform focus:outline-none focus:ring-2 focus:ring-brand-500/40 ${
-                      epicColor === c.value ? 'scale-125 ring-2 ring-white ring-offset-1 ring-offset-slate-50' : 'hover:scale-110'
+                      epicColor === c.value ? 'scale-125 ring-2 ring-white dark:ring-slate-700 ring-offset-1 ring-offset-slate-50 dark:ring-offset-slate-900' : 'hover:scale-110'
                     }`}
                     style={{ backgroundColor: c.value }}
                     aria-label={c.label} aria-pressed={epicColor === c.value} />
@@ -300,10 +300,10 @@ export function CreateModal({ initialMode = 'task', initialEpicId, initialStoryI
             <label htmlFor="create-labels" className={labelClass}>Labels</label>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {labels.map((l) => (
-                <span key={l} className="flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                <span key={l} className="flex items-center gap-1 rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
                   {l}
                   <button type="button" onClick={() => setLabels(labels.filter((x) => x !== l))}
-                    className="text-slate-400 hover:text-slate-700" aria-label={`Remove ${l}`}>
+                    className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300" aria-label={`Remove ${l}`}>
                     <X className="h-2.5 w-2.5" />
                   </button>
                 </span>
@@ -316,9 +316,9 @@ export function CreateModal({ initialMode = 'task', initialEpicId, initialStoryI
           </div>
 
           {/* actions */}
-          <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+          <div className="flex justify-end gap-2 border-t border-slate-100 dark:border-slate-700 pt-4">
             <button type="button" onClick={onClose}
-              className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500/20">
+              className="rounded-lg border border-slate-200 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500/20">
               Cancel
             </button>
             <button type="submit"

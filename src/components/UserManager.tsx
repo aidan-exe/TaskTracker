@@ -22,9 +22,9 @@ const AVATAR_COLORS = [
 ]
 
 const fieldClass =
-  'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20'
+  'w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:border-brand-500 dark:focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:focus:ring-brand-400/20'
 const labelClass =
-  'block text-xs font-medium uppercase tracking-wide text-slate-400 mb-1'
+  'block text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1'
 
 function UserForm({
   initial,
@@ -66,15 +66,15 @@ function UserForm({
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-4">
       {/* preview */}
-      <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3">
+      <div className="flex items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-800 px-4 py-3">
         <UserAvatar
-          user={{ id: '', name: name || 'Preview', email, avatarColor, createdAt: '' }}
+          user={{ id: '', name: name || 'Preview', email, avatarColor, createdAt: '', points: 0, vouchers: [] }}
           size="md"
           showTooltip={false}
         />
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-slate-800 truncate">{name || 'Preview'}</p>
-          <p className="text-xs text-slate-400 truncate">{email || 'email@example.com'}</p>
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{name || 'Preview'}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{email || 'email@example.com'}</p>
         </div>
       </div>
 
@@ -108,7 +108,7 @@ function UserForm({
               type="button"
               onClick={() => setAvatarColor(c)}
               className={`h-7 w-7 rounded-full transition-transform focus:outline-none focus:ring-2 focus:ring-brand-500/40 ${
-                avatarColor === c ? 'scale-125 ring-2 ring-white ring-offset-1 ring-offset-slate-100' : 'hover:scale-110'
+                avatarColor === c ? 'scale-125 ring-2 ring-white dark:ring-slate-700 ring-offset-1 ring-offset-slate-100 dark:ring-offset-slate-900' : 'hover:scale-110'
               }`}
               style={{ backgroundColor: c }}
               aria-label={`Select color ${c}`}
@@ -119,17 +119,16 @@ function UserForm({
       </div>
 
       {error && (
-        <p role="alert" className="text-xs text-red-500">
+        <p role="alert" className="text-xs text-red-500 dark:text-red-400">
           {error}
         </p>
       )}
 
-      <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+      <div className="flex justify-end gap-2 border-t border-slate-100 dark:border-slate-700 pt-4">
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-        >
+          className="rounded-lg border border-slate-200 dark:border-slate-600 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500/20">
           Cancel
         </button>
         <button
@@ -167,20 +166,20 @@ export function UserManager({ onClose }: Props) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl">
+      <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
         {/* header */}
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 px-6 py-4">
           <div className="flex items-center gap-2">
             <Users className="h-5 w-5 text-brand-500" aria-hidden="true" />
-            <h2 className="text-base font-semibold text-slate-800">Team Members</h2>
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+            <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">Team Members</h2>
+            <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
               {users.length}
             </span>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+            className="rounded-lg border border-slate-200 dark:border-slate-600 p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             aria-label="Close"
           >
             <X className="h-5 w-5" aria-hidden="true" />
@@ -193,9 +192,9 @@ export function UserManager({ onClose }: Props) {
             <div className="space-y-4">
               {users.length === 0 ? (
                 <div className="py-10 text-center">
-                  <Users className="mx-auto mb-3 h-10 w-10 text-slate-300" aria-hidden="true" />
-                  <p className="text-sm font-medium text-slate-500">No team members yet</p>
-                  <p className="mt-1 text-xs text-slate-400">Add your first member below</p>
+                  <Users className="mx-auto mb-3 h-10 w-10 text-slate-300 dark:text-slate-600" aria-hidden="true" />
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">No team members yet</p>
+                  <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Add your first member below</p>
                 </div>
               ) : (
                 <ul className="space-y-2" aria-label="Team members">
@@ -204,20 +203,20 @@ export function UserManager({ onClose }: Props) {
                     return (
                       <li
                         key={user.id}
-                        className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3"
+                        className="flex items-center gap-3 rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-3"
                       >
                         <UserAvatar user={user} size="md" showTooltip={false} />
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-slate-800 truncate">{user.name}</p>
-                          <p className="text-xs text-slate-400 truncate">{user.email}</p>
+                          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{user.name}</p>
+                          <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{user.email}</p>
                         </div>
-                        <span className="shrink-0 text-xs text-slate-400">
+                        <span className="shrink-0 text-xs text-slate-400 dark:text-slate-500">
                           {count} {count === 1 ? 'task' : 'tasks'}
                         </span>
                         <button
                           type="button"
                           onClick={() => setView({ type: 'edit', id: user.id })}
-                          className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+                          className="rounded-lg border border-slate-200 dark:border-slate-600 p-1.5 text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-750 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
                           aria-label={`Edit ${user.name}`}
                         >
                           <Edit3 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -233,7 +232,7 @@ export function UserManager({ onClose }: Props) {
                               deleteUser(user.id)
                             }
                           }}
-                          className="rounded-lg border border-red-200 p-1.5 text-red-500 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                          className="rounded-lg border border-red-200 dark:border-red-900 p-1.5 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 focus:outline-none focus:ring-2 focus:ring-red-500/20"
                           aria-label={`Remove ${user.name}`}
                         >
                           <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -247,8 +246,7 @@ export function UserManager({ onClose }: Props) {
               <button
                 type="button"
                 onClick={() => setView('add')}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 py-3 text-sm font-medium text-slate-500 hover:border-brand-300 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-colors"
-              >
+                className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 py-3 text-sm font-medium text-slate-500 dark:text-slate-400 hover:border-brand-300 dark:hover:border-brand-700 hover:text-brand-600 dark:hover:text-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-colors">
                 <Plus className="h-4 w-4" aria-hidden="true" />
                 Add Member
               </button>
@@ -258,7 +256,7 @@ export function UserManager({ onClose }: Props) {
           {/* add view */}
           {view === 'add' && (
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-slate-700">Add Member</h3>
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Add Member</h3>
               <UserForm
                 initial={{ avatarColor: AVATAR_COLORS[users.length % AVATAR_COLORS.length] }}
                 existingEmails={existingEmails}
@@ -272,7 +270,7 @@ export function UserManager({ onClose }: Props) {
           {/* edit view */}
           {typeof view === 'object' && view.type === 'edit' && editingUser && (
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-slate-700">Edit Member</h3>
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Edit Member</h3>
               <UserForm
                 initial={editingUser}
                 existingEmails={existingEmails}

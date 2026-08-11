@@ -52,11 +52,11 @@ export function ListView() {
       <button
         type="button"
         onClick={() => handleSort(col)}
-        className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-800"
+        className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
       >
         {label}
         <ArrowUpDown
-          className={`h-3 w-3 transition-opacity ${sortKey === col ? 'opacity-100 text-brand-500' : 'opacity-30'}`}
+          className={`h-3 w-3 transition-opacity ${sortKey === col ? 'opacity-100 text-brand-500 dark:text-brand-400' : 'opacity-30'}`}
           aria-hidden="true"
         />
       </button>
@@ -65,7 +65,7 @@ export function ListView() {
 
   if (sorted.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-slate-400">
+      <div className="flex flex-col items-center justify-center py-24 text-slate-400 dark:text-slate-500">
         <p className="text-lg font-medium">No tasks found</p>
         <p className="text-sm mt-1">Try adjusting your filters or create a new task.</p>
       </div>
@@ -73,24 +73,24 @@ export function ListView() {
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
       <table className="w-full min-w-[600px] text-sm">
-        <thead className="border-b border-slate-100 bg-slate-50">
+        <thead className="border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
           <tr className="text-left">
-            <th scope="col" className="px-3 py-3 first:pl-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <th scope="col" className="px-3 py-3 first:pl-4 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Epic / Story
             </th>
             <ColHeader col="title"       label="Title" />
             <ColHeader col="status"      label="Status" />
             <ColHeader col="priority"    label="Priority" />
             <ColHeader col="storyPoints" label="SP" />
-            <th scope="col" className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <th scope="col" className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
               Assignee
             </th>
             <ColHeader col="dueDate"     label="Due" />
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
           {sorted.map((task) => {
             const overdue =
               task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'done'
@@ -98,7 +98,7 @@ export function ListView() {
               <tr
                 key={task.id}
                 onClick={() => setSelectedTaskId(task.id)}
-                className="cursor-pointer transition-colors hover:bg-slate-50 focus-within:bg-slate-50"
+                className="cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 focus-within:bg-slate-50 dark:focus-within:bg-slate-800"
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') setSelectedTaskId(task.id)
@@ -116,7 +116,7 @@ export function ListView() {
                           </span>
                         )}
                         {story && (
-                          <span className="inline-flex rounded-md bg-violet-100 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700 w-fit">
+                          <span className="inline-flex rounded-md bg-violet-100 dark:bg-violet-900 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700 dark:text-violet-300 w-fit">
                             ◈ {story.title}
                           </span>
                         )}
@@ -125,11 +125,11 @@ export function ListView() {
                   })()}
                 </td>
                 <td className="max-w-xs py-3 px-3">
-                  <span className="block font-medium text-slate-800 truncate">{task.title}</span>
+                  <span className="block font-medium text-slate-800 dark:text-slate-100 truncate">{task.title}</span>
                   {task.labels.length > 0 && (
                     <div className="mt-0.5 flex flex-wrap gap-1">
                       {task.labels.map((l) => (
-                        <span key={l} className="rounded-sm bg-slate-100 px-1 text-[10px] text-slate-500">
+                        <span key={l} className="rounded-sm bg-slate-100 dark:bg-slate-800 px-1 text-[10px] text-slate-500 dark:text-slate-400">
                           {l}
                         </span>
                       ))}
@@ -142,7 +142,7 @@ export function ListView() {
                 <td className="px-3 py-3 whitespace-nowrap">
                   <PriorityBadge priority={task.priority} />
                 </td>
-                <td className="px-3 py-3 text-center text-xs font-medium text-slate-600 whitespace-nowrap">
+                <td className="px-3 py-3 text-center text-xs font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap">
                   {task.storyPoints ?? '—'}
                 </td>
                 <td className="px-3 py-3 whitespace-nowrap">
@@ -151,23 +151,23 @@ export function ListView() {
                     return assignee ? (
                       <div className="flex items-center gap-1.5">
                         <UserAvatar user={assignee} size="sm" />
-                        <span className="text-xs text-slate-600 truncate max-w-[80px]">{assignee.name}</span>
+                        <span className="text-xs text-slate-600 dark:text-slate-300 truncate max-w-[80px]">{assignee.name}</span>
                       </div>
                     ) : (
-                      <span className="text-xs text-slate-400">—</span>
+                      <span className="text-xs text-slate-400 dark:text-slate-500">—</span>
                     )
                   })()}
                 </td>
                 <td className="py-3 pl-3 pr-4 whitespace-nowrap">
                   {task.dueDate ? (
-                    <span className={`flex items-center gap-1 text-xs ${overdue ? 'font-semibold text-red-500' : 'text-slate-500'}`}>
+                    <span className={`flex items-center gap-1 text-xs ${overdue ? 'font-semibold text-red-500 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`}>
                       <CalendarDays className="h-3 w-3" aria-hidden="true" />
                       {new Date(task.dueDate).toLocaleDateString('en-US', {
                         month: 'short', day: 'numeric',
                       })}
                     </span>
                   ) : (
-                    <span className="text-xs text-slate-400">—</span>
+                    <span className="text-xs text-slate-400 dark:text-slate-500">—</span>
                   )}
                 </td>
               </tr>

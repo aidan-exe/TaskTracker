@@ -8,9 +8,9 @@ import { ProgressBar } from './ProgressBar'
 import type { Status, Priority } from '../types'
 
 const fieldClass =
-  'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20'
+  'w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:border-brand-500 dark:focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:focus:ring-brand-400/20'
 const labelClass =
-  'block text-xs font-medium uppercase tracking-wide text-slate-400 mb-1'
+  'block text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1'
 
 interface Props {
   epicId: string
@@ -93,12 +93,12 @@ export function EpicModal({ epicId, onClose, onAddStory }: Props) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
       onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
     >
-      <div className="relative flex w-full max-w-2xl max-h-[90vh] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div className="relative flex w-full max-w-2xl max-h-[90vh] flex-col overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
         {/* color accent bar */}
         <div className="h-1.5 w-full" style={{ backgroundColor: editing ? color : epic.color }} />
 
         {/* header */}
-        <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-4">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-700 px-6 py-4">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="rounded-md px-2 py-0.5 text-xs font-semibold text-white" style={{ backgroundColor: editing ? color : epic.color }}>
               ◆ Epic
@@ -114,17 +114,17 @@ export function EpicModal({ epicId, onClose, onAddStory }: Props) {
               </button>
             ) : (
               <button type="button" onClick={() => setEditing(true)}
-                className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500/20">
+                className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500/20">
                 <Edit3 className="h-4 w-4" /> Edit
               </button>
             )}
             <button type="button" onClick={handleDelete}
-              className="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+              className="flex items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-900 px-3 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 focus:outline-none focus:ring-2 focus:ring-red-500/20"
               aria-label="Delete epic">
               <Trash2 className="h-4 w-4" />
             </button>
             <button type="button" onClick={onClose}
-              className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+              className="rounded-lg border border-slate-200 dark:border-slate-600 p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               aria-label="Close">
               <X className="h-5 w-5" />
             </button>
@@ -138,7 +138,7 @@ export function EpicModal({ epicId, onClose, onAddStory }: Props) {
             <input value={title} onChange={(e) => setTitle(e.target.value)}
               className={fieldClass + ' text-lg font-semibold'} aria-label="Epic title" />
           ) : (
-            <h2 className="text-lg font-semibold text-slate-800">{epic.title}</h2>
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{epic.title}</h2>
           )}
 
           {/* description */}
@@ -148,8 +148,8 @@ export function EpicModal({ epicId, onClose, onAddStory }: Props) {
               <textarea value={description} onChange={(e) => setDescription(e.target.value)}
                 rows={3} className={fieldClass} />
             ) : (
-              <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
-                {epic.description || <em className="text-slate-400">No description</em>}
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                {epic.description || <em className="text-slate-400 dark:text-slate-500">No description</em>}
               </p>
             )}
           </div>
@@ -159,7 +159,7 @@ export function EpicModal({ epicId, onClose, onAddStory }: Props) {
             <div>
               <label className={labelClass}>Progress</label>
               <ProgressBar progress={progress} />
-              <div className="mt-2 flex gap-4 text-xs text-slate-400">
+              <div className="mt-2 flex gap-4 text-xs text-slate-400 dark:text-slate-500">
                 <span>{stories.length} stor{stories.length !== 1 ? 'ies' : 'y'}</span>
                 <span>{epicTasks.length} task{epicTasks.length !== 1 ? 's' : ''}</span>
               </div>
@@ -189,7 +189,7 @@ export function EpicModal({ epicId, onClose, onAddStory }: Props) {
               {editing ? (
                 <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={fieldClass} />
               ) : (
-                <span className="text-sm font-medium text-slate-700">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                   {epic.dueDate ? new Date(epic.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                 </span>
               )}
@@ -200,7 +200,7 @@ export function EpicModal({ epicId, onClose, onAddStory }: Props) {
                 <div className="flex flex-wrap gap-2 pt-1">
                   {EPIC_COLORS.map((c) => (
                     <button key={c.value} type="button" onClick={() => setColor(c.value)}
-                      className={`h-6 w-6 rounded-full transition-transform focus:outline-none focus:ring-2 focus:ring-brand-500/40 ${color === c.value ? 'scale-125 ring-2 ring-white ring-offset-1' : 'hover:scale-110'}`}
+                      className={`h-6 w-6 rounded-full transition-transform focus:outline-none focus:ring-2 focus:ring-brand-500/40 ${color === c.value ? 'scale-125 ring-2 ring-white dark:ring-slate-700 ring-offset-1' : 'hover:scale-110'}`}
                       style={{ backgroundColor: c.value }} aria-label={c.label} aria-pressed={color === c.value} />
                   ))}
                 </div>
@@ -213,11 +213,11 @@ export function EpicModal({ epicId, onClose, onAddStory }: Props) {
             <label className={labelClass}>Labels</label>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {(editing ? labels : epic.labels).map((l) => (
-                <span key={l} className="flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                <span key={l} className="flex items-center gap-1 rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
                   {l}
                   {editing && (
                     <button type="button" onClick={() => setLabels(labels.filter((x) => x !== l))}
-                      className="text-slate-400 hover:text-slate-700" aria-label={`Remove ${l}`}>
+                      className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300" aria-label={`Remove ${l}`}>
                       <X className="h-2.5 w-2.5" />
                     </button>
                   )}
@@ -242,16 +242,16 @@ export function EpicModal({ epicId, onClose, onAddStory }: Props) {
               )}
             </div>
             {stories.length === 0 ? (
-              <p className="text-xs text-slate-400 italic">No user stories yet.</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 italic">No user stories yet.</p>
             ) : (
               <ul className="space-y-1.5">
                 {stories.map((st) => (
                   <li key={st.id}>
                     <button type="button"
                       onClick={() => { onClose(); setSelectedStoryId(st.id) }}
-                      className="w-full text-left rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm hover:border-brand-200 hover:bg-white transition-colors">
+                      className="w-full text-left rounded-lg border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm hover:border-brand-200 dark:hover:border-brand-700 hover:bg-white dark:hover:bg-slate-750 transition-colors">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium text-slate-700 truncate">◈ {st.title}</span>
+                        <span className="font-medium text-slate-700 dark:text-slate-300 truncate">◈ {st.title}</span>
                         <StatusBadge status={st.status} />
                       </div>
                     </button>

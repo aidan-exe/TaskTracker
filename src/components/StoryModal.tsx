@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
-import { X, Trash2, Edit3, Check, Plus } from 'lucide-react'
+import { X, Trash2, Edit3, Check, Plus, MessageSquare } from 'lucide-react'
 import { useTaskStore } from '../store'
 import { STATUSES, PRIORITIES } from '../constants'
 import { StatusBadge } from './StatusBadge'
 import { PriorityBadge } from './PriorityBadge'
 import { UserAvatar } from './UserAvatar'
 import { ProgressBar } from './ProgressBar'
+import { CommentList } from './CommentList'
+import { CommentForm } from './CommentForm'
 import type { Status, Priority } from '../types'
 
 const fieldClass =
-  'w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20'
+  'w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:border-brand-500 dark:focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 dark:focus:ring-brand-400/20'
 const labelClass =
-  'block text-xs font-medium uppercase tracking-wide text-slate-400 mb-1'
+  'block text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500 mb-1'
 
 interface Props {
   storyId: string
@@ -25,6 +27,7 @@ export function StoryModal({ storyId, onClose, onAddTask }: Props) {
     tasksForStory, storyProgress,
     getUserById, users,
     setSelectedTaskId,
+    addStoryComment, deleteStoryComment,
   } = useTaskStore()
 
   const story = getStoryById(storyId)
@@ -93,6 +96,14 @@ export function StoryModal({ storyId, onClose, onAddTask }: Props) {
     }
   }
 
+  function handleAddComment(content: string, authorId: string) {
+    addStoryComment(storyId, { content, authorId })
+  }
+
+  function handleDeleteComment(commentId: string) {
+    deleteStoryComment(storyId, commentId)
+  }
+
   return (
     <div
       ref={overlayRef}
@@ -102,12 +113,12 @@ export function StoryModal({ storyId, onClose, onAddTask }: Props) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
       onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
     >
-      <div className="relative flex w-full max-w-2xl max-h-[90vh] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div className="relative flex w-full max-w-2xl max-h-[90vh] flex-col overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-2xl">
         {/* epic color accent */}
         <div className="h-1.5 w-full" style={{ backgroundColor: epic?.color ?? '#8b5cf6' }} />
 
         {/* header */}
-        <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-4">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-100 dark:border-slate-700 px-6 py-4">
           <div className="flex items-center gap-2 flex-wrap">
             {/* breadcrumb */}
             {epic && (
@@ -129,17 +140,17 @@ export function StoryModal({ storyId, onClose, onAddTask }: Props) {
               </button>
             ) : (
               <button type="button" onClick={() => setEditing(true)}
-                className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500/20">
+                className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-600 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500/20">
                 <Edit3 className="h-4 w-4" /> Edit
               </button>
             )}
             <button type="button" onClick={handleDelete}
-              className="flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+              className="flex items-center gap-1.5 rounded-lg border border-red-200 dark:border-red-900 px-3 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 focus:outline-none focus:ring-2 focus:ring-red-500/20"
               aria-label="Delete story">
               <Trash2 className="h-4 w-4" />
             </button>
             <button type="button" onClick={onClose}
-              className="rounded-lg border border-slate-200 p-1.5 text-slate-500 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
+              className="rounded-lg border border-slate-200 dark:border-slate-600 p-1.5 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               aria-label="Close">
               <X className="h-5 w-5" />
             </button>
@@ -153,7 +164,7 @@ export function StoryModal({ storyId, onClose, onAddTask }: Props) {
             <input value={title} onChange={(e) => setTitle(e.target.value)}
               className={fieldClass + ' text-lg font-semibold'} aria-label="Story title" />
           ) : (
-            <h2 className="text-lg font-semibold text-slate-800">{story.title}</h2>
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{story.title}</h2>
           )}
 
           {/* description */}
@@ -163,8 +174,8 @@ export function StoryModal({ storyId, onClose, onAddTask }: Props) {
               <textarea value={description} onChange={(e) => setDescription(e.target.value)}
                 rows={3} className={fieldClass} />
             ) : (
-              <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
-                {story.description || <em className="text-slate-400">No description</em>}
+              <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                {story.description || <em className="text-slate-400 dark:text-slate-500">No description</em>}
               </p>
             )}
           </div>
@@ -203,7 +214,7 @@ export function StoryModal({ storyId, onClose, onAddTask }: Props) {
                 <input type="number" min={0} max={100} value={storyPoints}
                   onChange={(e) => setStoryPoints(e.target.value)} placeholder="—" className={fieldClass} />
               ) : (
-                <span className="text-sm font-medium text-slate-700">{story.storyPoints ?? '—'}</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{story.storyPoints ?? '—'}</span>
               )}
             </div>
 
@@ -212,7 +223,7 @@ export function StoryModal({ storyId, onClose, onAddTask }: Props) {
               {editing ? (
                 <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={fieldClass} />
               ) : (
-                <span className="text-sm font-medium text-slate-700">
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                   {story.dueDate ? new Date(story.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                 </span>
               )}
@@ -234,10 +245,10 @@ export function StoryModal({ storyId, onClose, onAddTask }: Props) {
               ) : assignee ? (
                 <div className="flex items-center gap-2">
                   <UserAvatar user={assignee} size="sm" showTooltip={false} />
-                  <span className="text-sm font-medium text-slate-700">{assignee.name}</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{assignee.name}</span>
                 </div>
               ) : (
-                <span className="text-sm text-slate-400">Unassigned</span>
+                <span className="text-sm text-slate-400 dark:text-slate-500">Unassigned</span>
               )}
             </div>
           </div>
@@ -247,11 +258,11 @@ export function StoryModal({ storyId, onClose, onAddTask }: Props) {
             <label className={labelClass}>Labels</label>
             <div className="flex flex-wrap gap-1.5 mb-2">
               {(editing ? labels : story.labels).map((l) => (
-                <span key={l} className="flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                <span key={l} className="flex items-center gap-1 rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-300">
                   {l}
                   {editing && (
                     <button type="button" onClick={() => setLabels(labels.filter((x) => x !== l))}
-                      className="text-slate-400 hover:text-slate-700" aria-label={`Remove ${l}`}>
+                      className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300" aria-label={`Remove ${l}`}>
                       <X className="h-2.5 w-2.5" />
                     </button>
                   )}
@@ -276,7 +287,7 @@ export function StoryModal({ storyId, onClose, onAddTask }: Props) {
               )}
             </div>
             {tasks.length === 0 ? (
-              <p className="text-xs text-slate-400 italic">No tasks yet.</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 italic">No tasks yet.</p>
             ) : (
               <ul className="space-y-1.5">
                 {tasks.map((t) => {
@@ -285,9 +296,9 @@ export function StoryModal({ storyId, onClose, onAddTask }: Props) {
                     <li key={t.id}>
                       <button type="button"
                         onClick={() => { onClose(); setSelectedTaskId(t.id) }}
-                        className="w-full text-left rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 hover:border-brand-200 hover:bg-white transition-colors">
+                        className="w-full text-left rounded-lg border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 hover:border-brand-200 dark:hover:border-brand-700 hover:bg-white dark:hover:bg-slate-750 transition-colors">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-sm font-medium text-slate-700 truncate">✦ {t.title}</span>
+                          <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate">✦ {t.title}</span>
                           <div className="flex items-center gap-2 shrink-0">
                             {taskAssignee && <UserAvatar user={taskAssignee} size="sm" />}
                             <StatusBadge status={t.status} />
@@ -302,9 +313,24 @@ export function StoryModal({ storyId, onClose, onAddTask }: Props) {
           </div>
 
           {/* timestamps */}
-          <div className="flex flex-wrap gap-4 border-t border-slate-100 pt-4 text-xs text-slate-400">
+          <div className="flex flex-wrap gap-4 border-t border-slate-100 dark:border-slate-700 pt-4 text-xs text-slate-400 dark:text-slate-500">
             <span>Created {new Date(story.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
             <span>Updated {new Date(story.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          </div>
+
+          {/* comments section */}
+          <div className="border-t border-slate-200 dark:border-slate-700 pt-5">
+            <div className="flex items-center gap-2 mb-4">
+              <MessageSquare className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+                Comments ({story.comments.length})
+              </h3>
+            </div>
+            
+            <div className="space-y-4">
+              <CommentList comments={story.comments} onDelete={handleDeleteComment} />
+              <CommentForm onSubmit={handleAddComment} />
+            </div>
           </div>
         </div>
       </div>
