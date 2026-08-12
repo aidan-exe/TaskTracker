@@ -128,7 +128,7 @@ export type NewTask = Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments'>
 
 // ── UI ────────────────────────────────────────────────────────────────────────
 
-export type View = 'hierarchy' | 'kanban' | 'list'
+export type View = 'hierarchy' | 'kanban' | 'list' | 'analytics'
 
 export interface FilterState {
   search: string

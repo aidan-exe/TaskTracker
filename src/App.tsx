@@ -6,6 +6,7 @@ import { FilterBar } from './components/FilterBar'
 import { HierarchyView } from './components/HierarchyView'
 import { KanbanView } from './components/KanbanView'
 import { ListView } from './components/ListView'
+import { AnalyticsView } from './components/AnalyticsView'
 import { TaskModal } from './components/TaskModal'
 import { EpicModal } from './components/EpicModal'
 import { StoryModal } from './components/StoryModal'
@@ -123,6 +124,7 @@ export default function App() {
           {view === 'hierarchy' && <HierarchyView />}
           {view === 'kanban' && <KanbanView />}
           {view === 'list' && <ListView />}
+          {view === 'analytics' && <AnalyticsView />}
         </main>
 
         {/* modals */}

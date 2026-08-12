@@ -1,4 +1,4 @@
-import { Search, X, Layers, Kanban, List } from 'lucide-react'
+import { Search, X, Layers, Kanban, List, BarChart3 } from 'lucide-react'
 import { PRIORITIES } from '../constants'
 import { useTaskStore } from '../store'
 import { UserAvatar } from './UserAvatar'
@@ -137,6 +137,17 @@ export function FilterBar() {
         >
           <List className="h-4 w-4" aria-hidden="true" />
           List
+        </button>
+        <button
+          type="button"
+          onClick={() => setView('analytics')}
+          aria-pressed={view === 'analytics'}
+          className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/20 ${
+            view === 'analytics' ? 'bg-brand-500 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
+          }`}
+        >
+          <BarChart3 className="h-4 w-4" aria-hidden="true" />
+          Analytics
         </button>
       </div>
     </div>
