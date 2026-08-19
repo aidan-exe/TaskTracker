@@ -32,3 +32,11 @@ Thumbs.db
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Documentation/Setup files (keep local, don't commit)
+*SETUP*.md
+*SETUP*.sql
+*GUIDE*.md
+ARCHITECTURE.md
+QUICK_START.md
+.env.local.example
