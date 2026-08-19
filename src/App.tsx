@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { Plus, Zap, Users, Moon, Sun, Gift } from 'lucide-react'
+import { Plus, Zap, Users, Moon, Sun, Gift, LogOut } from 'lucide-react'
 import { useTaskStore } from './store'
+import { useAuth } from './components/AuthProvider'
+import { AuthPage } from './components/AuthPage'
 import { ThemeProvider } from './components/ThemeProvider'
 import { FilterBar } from './components/FilterBar'
 import { HierarchyView } from './components/HierarchyView'
@@ -19,6 +21,26 @@ import { NotificationToast } from './components/NotificationToast'
 import { CelebrationAnimation } from './components/CelebrationAnimation'
 
 export default function App() {
+  const { user, loading, signOut } = useAuth()
+  
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 dark:text-slate-400">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+  
+  // Show login page if not authenticated
+  if (!user) {
+    return <AuthPage />
+  }
+  
+  // User is authenticated - show main app
   const view = useTaskStore((s) => s.view)
   const darkMode = useTaskStore((s) => s.darkMode)
   const toggleDarkMode = useTaskStore((s) => s.toggleDarkMode)
@@ -107,6 +129,15 @@ export default function App() {
               >
                 <Plus className="h-4 w-4" aria-hidden="true" />
                 New
+              </button>
+              <button
+                type="button"
+                onClick={signOut}
+                className="flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500/40 transition-colors"
+                aria-label="Sign out"
+              >
+                <LogOut className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline">Sign Out</span>
               </button>
             </nav>
           </div>
