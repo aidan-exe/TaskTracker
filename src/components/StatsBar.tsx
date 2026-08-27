@@ -1,7 +1,7 @@
-import { useTaskStore } from '../store'
+import { useSupabaseStore } from '../hooks/useSupabaseStore'
 
 export function StatsBar() {
-  const { epics, stories, tasks } = useTaskStore()
+  const { epics, stories, tasks } = useSupabaseStore()
 
   const totalEpics = epics.length
   const totalStories = stories.length

@@ -40,3 +40,6 @@ Thumbs.db
 ARCHITECTURE.md
 QUICK_START.md
 .env.local.example
+
+# Scripts (seed data, utilities)
+scripts/

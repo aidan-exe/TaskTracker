@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Plus, Zap, Users, Moon, Sun, Gift, LogOut } from 'lucide-react'
 import { useTaskStore } from './store'
 import { useAuth } from './components/AuthProvider'
+import { useWorkspace } from './components/WorkspaceProvider'
 import { AuthPage } from './components/AuthPage'
 import { ThemeProvider } from './components/ThemeProvider'
 import { FilterBar } from './components/FilterBar'
@@ -21,10 +22,16 @@ import { NotificationToast } from './components/NotificationToast'
 import { CelebrationAnimation } from './components/CelebrationAnimation'
 
 export default function App() {
-  const { user, loading, signOut } = useAuth()
+  const { user, loading: authLoading, signOut } = useAuth()
+  const {
+    workspace,
+    workspaceMember,
+    loading: workspaceLoading,
+    error: workspaceError,
+  } = useWorkspace()
   
   // Show loading state while checking auth
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
         <div className="text-center">
@@ -40,7 +47,56 @@ export default function App() {
     return <AuthPage />
   }
   
-  // User is authenticated - show main app
+  // Show loading while workspace data loads
+  if (workspaceLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-slate-600 dark:text-slate-400">Loading workspace...</p>
+        </div>
+      </div>
+    )
+  }
+  
+  // Show error if workspace failed to load
+  if (workspaceError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
+        <div className="text-center max-w-md">
+          <div className="text-red-500 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">Failed to Load Workspace</h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">{workspaceError}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+  
+  // Show empty state if no workspace
+  if (!workspace) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
+        <div className="text-center max-w-md">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">No Workspace Found</h2>
+          <p className="text-slate-600 dark:text-slate-400 mb-4">
+            You don't have access to any workspaces yet. Contact your administrator to get added to a workspace.
+          </p>
+        </div>
+      </div>
+    )
+  }
+  
+  // User is authenticated and workspace is loaded - show main app
   const view = useTaskStore((s) => s.view)
   const darkMode = useTaskStore((s) => s.darkMode)
   const toggleDarkMode = useTaskStore((s) => s.toggleDarkMode)
@@ -50,16 +106,12 @@ export default function App() {
   const setSelectedEpicId = useTaskStore((s) => s.setSelectedEpicId)
   const setSelectedStoryId = useTaskStore((s) => s.setSelectedStoryId)
   const setSelectedTaskId = useTaskStore((s) => s.setSelectedTaskId)
-  const users = useTaskStore((s) => s.users)
   const notifications = useTaskStore((s) => s.notifications)
 
   const [showCreate, setShowCreate] = useState<{ mode: CreateMode; epicId?: string; storyId?: string } | null>(null)
   const [showUserManager, setShowUserManager] = useState(false)
   const [showVoucherRewards, setShowVoucherRewards] = useState(false)
   const [showCelebration, setShowCelebration] = useState(false)
-
-  // Get current user (first user for demo purposes)
-  const currentUser = users[0]
 
   function openCreateStory(epicId: string) {
     setShowCreate({ mode: 'story', epicId })
@@ -81,7 +133,7 @@ export default function App() {
               </div>
               <div>
                 <h1 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-none">TaskTracker</h1>
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-none mt-0.5">Engineering Team</p>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-none mt-0.5">{workspace.name}</p>
               </div>
             </div>
 
@@ -93,9 +145,9 @@ export default function App() {
                   day: 'numeric',
                 })}
               </span>
-              {currentUser && (
+              {workspaceMember && (
                 <>
-                  <PointsBadge points={currentUser.points} size="sm" showLabel={false} />
+                  <PointsBadge points={workspaceMember.points || 0} size="sm" showLabel={false} />
                   <button
                     type="button"
                     onClick={() => setShowVoucherRewards(true)}
@@ -185,8 +237,19 @@ export default function App() {
           />
         )}
         {showUserManager && <UserManager onClose={() => setShowUserManager(false)} />}
-        {showVoucherRewards && currentUser && (
-          <VoucherRewards user={currentUser} onClose={() => setShowVoucherRewards(false)} />
+        {showVoucherRewards && workspaceMember && (
+          <VoucherRewards
+            user={{
+              id: workspaceMember.id,
+              name: user.email || 'User',
+              email: user.email || '',
+              avatarColor: '#6366f1',
+              points: workspaceMember.points || 0,
+              vouchers: [], // TODO: Load vouchers from database
+              createdAt: workspaceMember.created_at,
+            }}
+            onClose={() => setShowVoucherRewards(false)}
+          />
         )}
 
         {/* Notification toasts - bottom-right corner */}

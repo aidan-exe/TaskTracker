@@ -1,13 +1,13 @@
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core'
 import { useState } from 'react'
-import { useTaskStore } from '../store'
+import { useSupabaseStore } from '../hooks/useSupabaseStore'
 import { KanbanColumn } from './KanbanColumn'
 import { StoryCard } from './StoryCard'
 import { STATUSES } from '../constants'
 import type { Status, Story } from '../types'
 
 export function KanbanView() {
-  const { filteredStories, moveStory } = useTaskStore()
+  const { filteredStories, moveStory } = useSupabaseStore()
   const stories = filteredStories()
   const [activeStory, setActiveStory] = useState<Story | null>(null)
 
