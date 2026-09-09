@@ -7,7 +7,7 @@
 -- or SQL editor as a signed-in user.
 --
 -- Apply order:
---   1. supabase/migrations/20260909131500_fix_rls_policies_no_recursion.sql
+--   1. supabase/migrations/20260909131600_fix_rls_policies_no_recursion.sql
 --   2. This file (section A in SQL Editor as postgres / dashboard)
 --   3. Section B in the running TaskTracker app as two Google-auth users
 -- ============================================================================

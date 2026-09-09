@@ -117,8 +117,9 @@ CREATE TRIGGER on_workspace_created
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_new_workspace();
 
--- Members may update points (gamification) but must not change role / identity
--- unless they are an owner or admin. Enforced here so RLS UPDATE can stay
+-- Members may update their own membership row (e.g. points). Admins/owners
+-- may update any member. Role/identity changes are still blocked for
+-- non-admins by prevent_member_role_escalation so RLS UPDATE stays
 -- non-recursive.
 CREATE OR REPLACE FUNCTION public.prevent_member_role_escalation()
 RETURNS trigger
@@ -242,8 +243,14 @@ CREATE POLICY workspace_members_update
   ON public.workspace_members
   FOR UPDATE
   TO authenticated
-  USING (public.is_workspace_member(workspace_id))
-  WITH CHECK (public.is_workspace_member(workspace_id));
+  USING (
+    user_id = (SELECT auth.uid())
+    OR public.is_workspace_admin(workspace_id)
+  )
+  WITH CHECK (
+    user_id = (SELECT auth.uid())
+    OR public.is_workspace_admin(workspace_id)
+  );
 
 CREATE POLICY workspace_members_delete
   ON public.workspace_members
