@@ -57,6 +57,7 @@ export function useSupabaseData(workspaceId: string | null) {
       return
     }
 
+    const id = workspaceId
     let mounted = true
 
     async function loadData() {
@@ -79,13 +80,13 @@ export function useSupabaseData(workspaceId: string | null) {
           commentsResult,
           membersResult,
         ] = await Promise.all([
-          supabase.from('workspaces').select('*').eq('id', workspaceId).single(),
-          supabase.from('workspace_members').select('*').eq('workspace_id', workspaceId).eq('user_id', user.id).single(),
-          supabase.from('epics').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: false }),
-          supabase.from('stories').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: false }),
-          supabase.from('tasks').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: false }),
-          supabase.from('comments').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: true }),
-          supabase.from('workspace_members').select('*').eq('workspace_id', workspaceId),
+          supabase.from('workspaces').select('*').eq('id', id).single(),
+          supabase.from('workspace_members').select('*').eq('workspace_id', id).eq('user_id', user.id).single(),
+          supabase.from('epics').select('*').eq('workspace_id', id).order('created_at', { ascending: false }),
+          supabase.from('stories').select('*').eq('workspace_id', id).order('created_at', { ascending: false }),
+          supabase.from('tasks').select('*').eq('workspace_id', id).order('created_at', { ascending: false }),
+          supabase.from('comments').select('*').eq('workspace_id', id).order('created_at', { ascending: true }),
+          supabase.from('workspace_members').select('*').eq('workspace_id', id),
         ])
 
         if (!mounted) return

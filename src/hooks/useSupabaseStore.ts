@@ -7,7 +7,7 @@
 
 import { useWorkspace } from '../components/WorkspaceProvider'
 import { updateStory, updateTask } from '../lib/supabase-api'
-import type { Status } from '../types'
+import type { Epic, Status, Story, Task } from '../types'
 
 /**
  * Hook that provides Supabase-backed data with the same interface as useTaskStore
@@ -24,7 +24,7 @@ export function useSupabaseStore() {
   } = useWorkspace()
 
   // Convert Supabase data to app format
-  const appStories = stories.map((story) => ({
+  const appStories: Story[] = stories.map((story) => ({
     id: story.id,
     epicId: story.epic_id,
     title: story.title,
@@ -35,19 +35,19 @@ export function useSupabaseStore() {
     storyPoints: story.story_points || null,
     assigneeId: story.assignee_id,
     dueDate: story.due_date || null,
-    createdAt: story.created_at,
-    updatedAt: story.updated_at,
+    createdAt: story.created_at ?? '',
+    updatedAt: story.updated_at ?? '',
     comments: comments
       .filter((c) => c.story_id === story.id)
       .map((c) => ({
         id: c.id,
         authorId: c.author_id,
         content: c.content,
-        createdAt: c.created_at,
+        createdAt: c.created_at ?? '',
       })),
   }))
 
-  const appTasks = tasks.map((task) => ({
+  const appTasks: Task[] = tasks.map((task) => ({
     id: task.id,
     storyId: task.story_id,
     title: task.title,
@@ -58,19 +58,19 @@ export function useSupabaseStore() {
     storyPoints: task.story_points || null,
     assigneeId: task.assignee_id,
     dueDate: task.due_date || null,
-    createdAt: task.created_at,
-    updatedAt: task.updated_at,
+    createdAt: task.created_at ?? '',
+    updatedAt: task.updated_at ?? '',
     comments: comments
       .filter((c) => c.task_id === task.id)
       .map((c) => ({
         id: c.id,
         authorId: c.author_id,
         content: c.content,
-        createdAt: c.created_at,
+        createdAt: c.created_at ?? '',
       })),
   }))
 
-  const appEpics = epics.map((epic) => ({
+  const appEpics: Epic[] = epics.map((epic) => ({
     id: epic.id,
     title: epic.title,
     description: epic.description || '',
@@ -79,8 +79,8 @@ export function useSupabaseStore() {
     color: epic.color || '#6366f1',
     labels: epic.labels || [],
     dueDate: epic.due_date || null,
-    createdAt: epic.created_at,
-    updatedAt: epic.updated_at,
+    createdAt: epic.created_at ?? '',
+    updatedAt: epic.updated_at ?? '',
   }))
 
   const appMembers = members.map((member) => ({

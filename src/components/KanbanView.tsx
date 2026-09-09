@@ -1,4 +1,4 @@
-import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core'
+import { DndContext, DragEndEvent, DragStartEvent, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core'
 import { useState } from 'react'
 import { useSupabaseStore } from '../hooks/useSupabaseStore'
 import { KanbanColumn } from './KanbanColumn'
@@ -19,7 +19,7 @@ export function KanbanView() {
     })
   )
 
-  function handleDragStart(event: any) {
+  function handleDragStart(event: DragStartEvent) {
     const story = stories.find((s) => s.id === event.active.id)
     if (story) setActiveStory(story)
   }

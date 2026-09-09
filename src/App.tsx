@@ -246,7 +246,7 @@ export default function App() {
               avatarColor: '#6366f1',
               points: workspaceMember.points || 0,
               vouchers: [], // TODO: Load vouchers from database
-              createdAt: workspaceMember.created_at,
+              createdAt: workspaceMember.created_at ?? '',
             }}
             onClose={() => setShowVoucherRewards(false)}
           />
