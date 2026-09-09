@@ -8,9 +8,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables. Check your .env.local file.')
 }
 
-// Create Supabase client with type safety disabled due to incomplete database.types.ts
-// TODO: Regenerate database types with: npx supabase gen types typescript --project-id <project-id> > src/lib/database.types.ts
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
@@ -20,7 +18,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       eventsPerSecond: 10,
     },
   },
-}) as any
+})
 
 // Helper: Get current workspace member ID
 export async function getCurrentWorkspaceMember(workspaceId: string): Promise<string | null> {
@@ -35,7 +33,7 @@ export async function getCurrentWorkspaceMember(workspaceId: string): Promise<st
     .maybeSingle()
 
   if (error || !data) return null
-  return (data as { id: string }).id
+  return data.id
 }
 
 // Helper: Get user's workspaces

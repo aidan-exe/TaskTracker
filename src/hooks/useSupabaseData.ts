@@ -70,7 +70,6 @@ export function useSupabaseData(workspaceId: string | null) {
         }
 
         // Fetch all data in parallel
-        // @ts-ignore - Database types need regeneration
         const [
           workspaceResult,
           workspaceMemberResult,
@@ -82,10 +81,10 @@ export function useSupabaseData(workspaceId: string | null) {
         ] = await Promise.all([
           supabase.from('workspaces').select('*').eq('id', workspaceId).single(),
           supabase.from('workspace_members').select('*').eq('workspace_id', workspaceId).eq('user_id', user.id).single(),
-          supabase.from('epics').select('*').eq('workspace_id', workspaceId).order('created_at' as any, { ascending: false }),
-          supabase.from('stories').select('*').eq('workspace_id', workspaceId).order('created_at' as any, { ascending: false }),
-          supabase.from('tasks').select('*').eq('workspace_id', workspaceId).order('created_at' as any, { ascending: false }),
-          supabase.from('comments').select('*').eq('workspace_id', workspaceId).order('created_at' as any, { ascending: true }),
+          supabase.from('epics').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: false }),
+          supabase.from('stories').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: false }),
+          supabase.from('tasks').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: false }),
+          supabase.from('comments').select('*').eq('workspace_id', workspaceId).order('created_at', { ascending: true }),
           supabase.from('workspace_members').select('*').eq('workspace_id', workspaceId),
         ])
 
@@ -186,10 +185,9 @@ export function useWorkspaces() {
         }
 
         // Get workspaces where user is a member
-        // @ts-ignore - Database types need regeneration
         const { data: members, error: membersError } = await supabase
           .from('workspace_members')
-          .select('workspace_id' as any)
+          .select('workspace_id')
           .eq('user_id', user.id)
 
         if (membersError) throw membersError
@@ -202,7 +200,6 @@ export function useWorkspaces() {
           return
         }
 
-        // @ts-ignore - Database types need regeneration
         const workspaceIds = members.map((m) => m.workspace_id)
 
         const { data: workspacesData, error: workspacesError } = await supabase

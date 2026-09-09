@@ -1,35 +1,44 @@
 /**
  * Supabase API Layer
- * 
+ *
  * CRUD operations for epics, stories, tasks, and comments.
  * All operations include workspace context.
  */
 
 import { supabase } from './supabase'
+import type { TablesInsert, TablesUpdate } from './database.types'
+
+type EpicInsert = Omit<TablesInsert<'epics'>, 'workspace_id'>
+type EpicUpdate = TablesUpdate<'epics'>
+type StoryInsert = Omit<TablesInsert<'stories'>, 'workspace_id'>
+type StoryUpdate = TablesUpdate<'stories'>
+type TaskInsert = Omit<TablesInsert<'tasks'>, 'workspace_id'>
+type TaskUpdate = TablesUpdate<'tasks'>
+type CommentInsert = Omit<TablesInsert<'comments'>, 'workspace_id'>
+type NotificationInsert = Omit<TablesInsert<'notifications'>, 'workspace_id'>
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Epics
 // ──────────────────────────────────────────────────────────────────────────────
 
-export async function createEpic(workspaceId: string, epic: any) {
-  const { data, error } = await (supabase
+export async function createEpic(workspaceId: string, epic: EpicInsert) {
+  const { data, error } = await supabase
     .from('epics')
-    .insert({ ...epic, workspace_id: workspaceId } as any)
+    .insert({ ...epic, workspace_id: workspaceId })
     .select()
-    .single())
+    .single()
 
   if (error) throw error
   return data
 }
 
-export async function updateEpic(id: string, updates: any) {
-  // @ts-ignore - Database types need regeneration
-  const { data, error } = await (supabase
+export async function updateEpic(id: string, updates: EpicUpdate) {
+  const { data, error } = await supabase
     .from('epics')
-    .update(updates as any)
+    .update(updates)
     .eq('id', id)
     .select()
-    .single())
+    .single()
 
   if (error) throw error
   return data
@@ -45,25 +54,24 @@ export async function deleteEpic(id: string) {
 // Stories
 // ──────────────────────────────────────────────────────────────────────────────
 
-export async function createStory(workspaceId: string, story: any) {
-  const { data, error } = await (supabase
+export async function createStory(workspaceId: string, story: StoryInsert) {
+  const { data, error } = await supabase
     .from('stories')
-    .insert({ ...story, workspace_id: workspaceId } as any)
+    .insert({ ...story, workspace_id: workspaceId })
     .select()
-    .single())
+    .single()
 
   if (error) throw error
   return data
 }
 
-export async function updateStory(id: string, updates: any) {
-  // @ts-ignore - Database types need regeneration
-  const { data, error } = await (supabase
+export async function updateStory(id: string, updates: StoryUpdate) {
+  const { data, error } = await supabase
     .from('stories')
-    .update(updates as any)
+    .update(updates)
     .eq('id', id)
     .select()
-    .single())
+    .single()
 
   if (error) throw error
   return data
@@ -78,25 +86,24 @@ export async function deleteStory(id: string) {
 // Tasks
 // ──────────────────────────────────────────────────────────────────────────────
 
-export async function createTask(workspaceId: string, task: any) {
-  const { data, error } = await (supabase
+export async function createTask(workspaceId: string, task: TaskInsert) {
+  const { data, error } = await supabase
     .from('tasks')
-    .insert({ ...task, workspace_id: workspaceId } as any)
+    .insert({ ...task, workspace_id: workspaceId })
     .select()
-    .single())
+    .single()
 
   if (error) throw error
   return data
 }
 
-export async function updateTask(id: string, updates: any) {
-  // @ts-ignore - Database types need regeneration
-  const { data, error} = await (supabase
+export async function updateTask(id: string, updates: TaskUpdate) {
+  const { data, error } = await supabase
     .from('tasks')
-    .update(updates as any)
+    .update(updates)
     .eq('id', id)
     .select()
-    .single())
+    .single()
 
   if (error) throw error
   return data
@@ -111,7 +118,7 @@ export async function deleteTask(id: string) {
 // Comments
 // ──────────────────────────────────────────────────────────────────────────────
 
-export async function createComment(workspaceId: string, comment: any) {
+export async function createComment(workspaceId: string, comment: CommentInsert) {
   const { data, error } = await supabase
     .from('comments')
     .insert({ ...comment, workspace_id: workspaceId })
@@ -132,7 +139,6 @@ export async function deleteComment(id: string) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 export async function updateWorkspaceMemberPoints(memberId: string, pointsDelta: number) {
-  // Fetch current points
   const { data: member, error: fetchError } = await supabase
     .from('workspace_members')
     .select('points')
@@ -141,15 +147,14 @@ export async function updateWorkspaceMemberPoints(memberId: string, pointsDelta:
 
   if (fetchError) throw fetchError
 
-  const newPoints = ((member as any).points || 0) + pointsDelta
+  const newPoints = (member.points || 0) + pointsDelta
 
-  // @ts-ignore - Database types need regeneration
-  const { data, error } = await (supabase
+  const { data, error } = await supabase
     .from('workspace_members')
-    .update({ points: newPoints } as any)
+    .update({ points: newPoints })
     .eq('id', memberId)
     .select()
-    .single())
+    .single()
 
   if (error) throw error
   return data
@@ -161,33 +166,23 @@ export async function updateWorkspaceMemberPoints(memberId: string, pointsDelta:
 
 export async function createNotification(
   workspaceId: string,
-  notification: {
-    recipient_id: string
-    actor_id?: string | null
-    type: string
-    message: string
-    item_type?: string | null
-    item_id?: string | null
-    old_status?: string | null
-    new_status?: string | null
-  }
+  notification: NotificationInsert
 ) {
-  const { data, error } = await (supabase
+  const { data, error } = await supabase
     .from('notifications')
-    .insert({ ...notification, workspace_id: workspaceId } as any)
+    .insert({ ...notification, workspace_id: workspaceId })
     .select()
-    .single())
+    .single()
 
   if (error) throw error
   return data
 }
 
 export async function dismissNotification(id: string) {
-  // @ts-ignore - Database types need regeneration
-  const { error } = await (supabase
+  const { error } = await supabase
     .from('notifications')
-    .update({ dismissed: true } as any)
-    .eq('id', id))
+    .update({ dismissed: true })
+    .eq('id', id)
 
   if (error) throw error
 }
