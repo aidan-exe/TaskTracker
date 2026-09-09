@@ -1,17 +1,27 @@
 /**
  * Supabase API Layer
- * 
+ *
  * CRUD operations for epics, stories, tasks, and comments.
  * All operations include workspace context.
  */
 
 import { supabase } from './supabase'
+import type { TablesInsert, TablesUpdate } from './database.types'
+
+type EpicInsert = Omit<TablesInsert<'epics'>, 'workspace_id'>
+type EpicUpdate = TablesUpdate<'epics'>
+type StoryInsert = Omit<TablesInsert<'stories'>, 'workspace_id'>
+type StoryUpdate = TablesUpdate<'stories'>
+type TaskInsert = Omit<TablesInsert<'tasks'>, 'workspace_id'>
+type TaskUpdate = TablesUpdate<'tasks'>
+type CommentInsert = Omit<TablesInsert<'comments'>, 'workspace_id'>
+type NotificationInsert = Omit<TablesInsert<'notifications'>, 'workspace_id'>
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Epics
 // ──────────────────────────────────────────────────────────────────────────────
 
-export async function createEpic(workspaceId: string, epic: any) {
+export async function createEpic(workspaceId: string, epic: EpicInsert) {
   const { data, error } = await supabase
     .from('epics')
     .insert({ ...epic, workspace_id: workspaceId })
@@ -22,7 +32,7 @@ export async function createEpic(workspaceId: string, epic: any) {
   return data
 }
 
-export async function updateEpic(id: string, updates: any) {
+export async function updateEpic(id: string, updates: EpicUpdate) {
   const { data, error } = await supabase
     .from('epics')
     .update(updates)
@@ -44,7 +54,7 @@ export async function deleteEpic(id: string) {
 // Stories
 // ──────────────────────────────────────────────────────────────────────────────
 
-export async function createStory(workspaceId: string, story: any) {
+export async function createStory(workspaceId: string, story: StoryInsert) {
   const { data, error } = await supabase
     .from('stories')
     .insert({ ...story, workspace_id: workspaceId })
@@ -55,7 +65,7 @@ export async function createStory(workspaceId: string, story: any) {
   return data
 }
 
-export async function updateStory(id: string, updates: any) {
+export async function updateStory(id: string, updates: StoryUpdate) {
   const { data, error } = await supabase
     .from('stories')
     .update(updates)
@@ -76,7 +86,7 @@ export async function deleteStory(id: string) {
 // Tasks
 // ──────────────────────────────────────────────────────────────────────────────
 
-export async function createTask(workspaceId: string, task: any) {
+export async function createTask(workspaceId: string, task: TaskInsert) {
   const { data, error } = await supabase
     .from('tasks')
     .insert({ ...task, workspace_id: workspaceId })
@@ -87,7 +97,7 @@ export async function createTask(workspaceId: string, task: any) {
   return data
 }
 
-export async function updateTask(id: string, updates: any) {
+export async function updateTask(id: string, updates: TaskUpdate) {
   const { data, error } = await supabase
     .from('tasks')
     .update(updates)
@@ -108,7 +118,7 @@ export async function deleteTask(id: string) {
 // Comments
 // ──────────────────────────────────────────────────────────────────────────────
 
-export async function createComment(workspaceId: string, comment: any) {
+export async function createComment(workspaceId: string, comment: CommentInsert) {
   const { data, error } = await supabase
     .from('comments')
     .insert({ ...comment, workspace_id: workspaceId })
@@ -129,7 +139,6 @@ export async function deleteComment(id: string) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 export async function updateWorkspaceMemberPoints(memberId: string, pointsDelta: number) {
-  // Fetch current points
   const { data: member, error: fetchError } = await supabase
     .from('workspace_members')
     .select('points')
@@ -157,16 +166,7 @@ export async function updateWorkspaceMemberPoints(memberId: string, pointsDelta:
 
 export async function createNotification(
   workspaceId: string,
-  notification: {
-    recipient_id: string
-    actor_id?: string | null
-    type: string
-    message: string
-    item_type?: string | null
-    item_id?: string | null
-    old_status?: string | null
-    new_status?: string | null
-  }
+  notification: NotificationInsert
 ) {
   const { data, error } = await supabase
     .from('notifications')

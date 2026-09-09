@@ -2,9 +2,18 @@
  * Generated database types for the TaskTracker Supabase schema.
  *
  * Source: in-repo schema recovered from git history (`SUPABASE_SETUP.sql` at
- * commit be070c5). Live generation was unavailable in this environment:
+ * commit be070c5). Live generation was unavailable — still no
+ * SUPABASE_ACCESS_TOKEN in this environment:
  * `npx supabase gen types typescript --project-id duupufxmoomhgvobbqnr`
  * failed with "Access token not provided".
+ *
+ * SUPABASE_SETUP.sql stored constrained columns as TEXT + CHECK (not Postgres
+ * ENUM types). Those CHECKs (and the previous hand-written types) used unions
+ * such as workspace_members.role `'owner' | 'admin' | 'member'`. They were
+ * applied as Postgres ENUMs for this generation so `Database.Enums` emits the
+ * unions. A live `supabase gen types` run against unmodified TEXT+CHECK columns
+ * would emit `string` until the live database uses enum types (or CHECKs are
+ * mapped the same way).
  *
  * Re-run against the live project when `SUPABASE_ACCESS_TOKEN` is available:
  *   npx supabase gen types typescript --project-id duupufxmoomhgvobbqnr > src/lib/database.types.ts
@@ -140,8 +149,8 @@ export type Database = {
           due_date: string | null
           id: string
           labels: string[] | null
-          priority: string | null
-          status: string | null
+          priority: Database["public"]["Enums"]["item_priority"]
+          status: Database["public"]["Enums"]["item_status"]
           title: string
           updated_at: string | null
           workspace_id: string
@@ -153,8 +162,8 @@ export type Database = {
           due_date?: string | null
           id?: string
           labels?: string[] | null
-          priority?: string | null
-          status?: string | null
+          priority?: Database["public"]["Enums"]["item_priority"]
+          status?: Database["public"]["Enums"]["item_status"]
           title: string
           updated_at?: string | null
           workspace_id: string
@@ -166,8 +175,8 @@ export type Database = {
           due_date?: string | null
           id?: string
           labels?: string[] | null
-          priority?: string | null
-          status?: string | null
+          priority?: Database["public"]["Enums"]["item_priority"]
+          status?: Database["public"]["Enums"]["item_status"]
           title?: string
           updated_at?: string | null
           workspace_id?: string
@@ -189,12 +198,14 @@ export type Database = {
           dismissed: boolean | null
           id: string
           item_id: string | null
-          item_type: string | null
+          item_type:
+            | Database["public"]["Enums"]["notification_item_type"]
+            | null
           message: string
           new_status: string | null
           old_status: string | null
           recipient_id: string
-          type: string
+          type: Database["public"]["Enums"]["notification_type"]
           workspace_id: string
         }
         Insert: {
@@ -203,12 +214,14 @@ export type Database = {
           dismissed?: boolean | null
           id?: string
           item_id?: string | null
-          item_type?: string | null
+          item_type?:
+            | Database["public"]["Enums"]["notification_item_type"]
+            | null
           message: string
           new_status?: string | null
           old_status?: string | null
           recipient_id: string
-          type: string
+          type: Database["public"]["Enums"]["notification_type"]
           workspace_id: string
         }
         Update: {
@@ -217,12 +230,14 @@ export type Database = {
           dismissed?: boolean | null
           id?: string
           item_id?: string | null
-          item_type?: string | null
+          item_type?:
+            | Database["public"]["Enums"]["notification_item_type"]
+            | null
           message?: string
           new_status?: string | null
           old_status?: string | null
           recipient_id?: string
-          type?: string
+          type?: Database["public"]["Enums"]["notification_type"]
           workspace_id?: string
         }
         Relationships: [
@@ -258,8 +273,8 @@ export type Database = {
           epic_id: string
           id: string
           labels: string[] | null
-          priority: string | null
-          status: string | null
+          priority: Database["public"]["Enums"]["item_priority"]
+          status: Database["public"]["Enums"]["item_status"]
           story_points: number | null
           title: string
           updated_at: string | null
@@ -273,8 +288,8 @@ export type Database = {
           epic_id: string
           id?: string
           labels?: string[] | null
-          priority?: string | null
-          status?: string | null
+          priority?: Database["public"]["Enums"]["item_priority"]
+          status?: Database["public"]["Enums"]["item_status"]
           story_points?: number | null
           title: string
           updated_at?: string | null
@@ -288,8 +303,8 @@ export type Database = {
           epic_id?: string
           id?: string
           labels?: string[] | null
-          priority?: string | null
-          status?: string | null
+          priority?: Database["public"]["Enums"]["item_priority"]
+          status?: Database["public"]["Enums"]["item_status"]
           story_points?: number | null
           title?: string
           updated_at?: string | null
@@ -327,8 +342,8 @@ export type Database = {
           due_date: string | null
           id: string
           labels: string[] | null
-          priority: string | null
-          status: string | null
+          priority: Database["public"]["Enums"]["item_priority"]
+          status: Database["public"]["Enums"]["item_status"]
           story_id: string
           story_points: number | null
           title: string
@@ -342,8 +357,8 @@ export type Database = {
           due_date?: string | null
           id?: string
           labels?: string[] | null
-          priority?: string | null
-          status?: string | null
+          priority?: Database["public"]["Enums"]["item_priority"]
+          status?: Database["public"]["Enums"]["item_status"]
           story_id: string
           story_points?: number | null
           title: string
@@ -357,8 +372,8 @@ export type Database = {
           due_date?: string | null
           id?: string
           labels?: string[] | null
-          priority?: string | null
-          status?: string | null
+          priority?: Database["public"]["Enums"]["item_priority"]
+          status?: Database["public"]["Enums"]["item_status"]
           story_id?: string
           story_points?: number | null
           title?: string
@@ -427,7 +442,7 @@ export type Database = {
           is_used: boolean | null
           member_id: string
           redeemed_at: string | null
-          type: string
+          type: Database["public"]["Enums"]["voucher_type"]
           used_at: string | null
           workspace_id: string
         }
@@ -438,7 +453,7 @@ export type Database = {
           is_used?: boolean | null
           member_id: string
           redeemed_at?: string | null
-          type: string
+          type: Database["public"]["Enums"]["voucher_type"]
           used_at?: string | null
           workspace_id: string
         }
@@ -449,7 +464,7 @@ export type Database = {
           is_used?: boolean | null
           member_id?: string
           redeemed_at?: string | null
-          type?: string
+          type?: Database["public"]["Enums"]["voucher_type"]
           used_at?: string | null
           workspace_id?: string
         }
@@ -475,7 +490,7 @@ export type Database = {
           created_at: string | null
           id: string
           points: number | null
-          role: string | null
+          role: Database["public"]["Enums"]["workspace_role"]
           user_id: string
           workspace_id: string
         }
@@ -483,7 +498,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           points?: number | null
-          role?: string | null
+          role?: Database["public"]["Enums"]["workspace_role"]
           user_id: string
           workspace_id: string
         }
@@ -491,7 +506,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           points?: number | null
-          role?: string | null
+          role?: Database["public"]["Enums"]["workspace_role"]
           user_id?: string
           workspace_id?: string
         }
@@ -540,7 +555,17 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      item_priority: "critical" | "high" | "medium" | "low"
+      item_status: "backlog" | "todo" | "in_progress" | "in_review" | "done"
+      notification_item_type: "story" | "task" | "voucher" | "epic"
+      notification_type:
+        | "status_change"
+        | "points_awarded"
+        | "voucher_redeemed"
+        | "comment_added"
+        | "assigned"
+      voucher_type: "coffee" | "cappuccino"
+      workspace_role: "owner" | "admin" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -667,6 +692,19 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      item_priority: ["critical", "high", "medium", "low"],
+      item_status: ["backlog", "todo", "in_progress", "in_review", "done"],
+      notification_item_type: ["story", "task", "voucher", "epic"],
+      notification_type: [
+        "status_change",
+        "points_awarded",
+        "voucher_redeemed",
+        "comment_added",
+        "assigned",
+      ],
+      voucher_type: ["coffee", "cappuccino"],
+      workspace_role: ["owner", "admin", "member"],
+    },
   },
 } as const
