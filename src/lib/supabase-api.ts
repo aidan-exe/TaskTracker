@@ -12,24 +12,23 @@ import { supabase } from './supabase'
 // ──────────────────────────────────────────────────────────────────────────────
 
 export async function createEpic(workspaceId: string, epic: any) {
-  const { data, error } = await (supabase
+  const { data, error } = await supabase
     .from('epics')
-    .insert({ ...epic, workspace_id: workspaceId } as any)
+    .insert({ ...epic, workspace_id: workspaceId })
     .select()
-    .single())
+    .single()
 
   if (error) throw error
   return data
 }
 
 export async function updateEpic(id: string, updates: any) {
-  // @ts-ignore - Database types need regeneration
-  const { data, error } = await (supabase
+  const { data, error } = await supabase
     .from('epics')
-    .update(updates as any)
+    .update(updates)
     .eq('id', id)
     .select()
-    .single())
+    .single()
 
   if (error) throw error
   return data
@@ -46,24 +45,23 @@ export async function deleteEpic(id: string) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 export async function createStory(workspaceId: string, story: any) {
-  const { data, error } = await (supabase
+  const { data, error } = await supabase
     .from('stories')
-    .insert({ ...story, workspace_id: workspaceId } as any)
+    .insert({ ...story, workspace_id: workspaceId })
     .select()
-    .single())
+    .single()
 
   if (error) throw error
   return data
 }
 
 export async function updateStory(id: string, updates: any) {
-  // @ts-ignore - Database types need regeneration
-  const { data, error } = await (supabase
+  const { data, error } = await supabase
     .from('stories')
-    .update(updates as any)
+    .update(updates)
     .eq('id', id)
     .select()
-    .single())
+    .single()
 
   if (error) throw error
   return data
@@ -79,24 +77,23 @@ export async function deleteStory(id: string) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 export async function createTask(workspaceId: string, task: any) {
-  const { data, error } = await (supabase
+  const { data, error } = await supabase
     .from('tasks')
-    .insert({ ...task, workspace_id: workspaceId } as any)
+    .insert({ ...task, workspace_id: workspaceId })
     .select()
-    .single())
+    .single()
 
   if (error) throw error
   return data
 }
 
 export async function updateTask(id: string, updates: any) {
-  // @ts-ignore - Database types need regeneration
-  const { data, error} = await (supabase
+  const { data, error } = await supabase
     .from('tasks')
-    .update(updates as any)
+    .update(updates)
     .eq('id', id)
     .select()
-    .single())
+    .single()
 
   if (error) throw error
   return data
@@ -141,15 +138,14 @@ export async function updateWorkspaceMemberPoints(memberId: string, pointsDelta:
 
   if (fetchError) throw fetchError
 
-  const newPoints = ((member as any).points || 0) + pointsDelta
+  const newPoints = (member.points || 0) + pointsDelta
 
-  // @ts-ignore - Database types need regeneration
-  const { data, error } = await (supabase
+  const { data, error } = await supabase
     .from('workspace_members')
-    .update({ points: newPoints } as any)
+    .update({ points: newPoints })
     .eq('id', memberId)
     .select()
-    .single())
+    .single()
 
   if (error) throw error
   return data
@@ -172,22 +168,21 @@ export async function createNotification(
     new_status?: string | null
   }
 ) {
-  const { data, error } = await (supabase
+  const { data, error } = await supabase
     .from('notifications')
-    .insert({ ...notification, workspace_id: workspaceId } as any)
+    .insert({ ...notification, workspace_id: workspaceId })
     .select()
-    .single())
+    .single()
 
   if (error) throw error
   return data
 }
 
 export async function dismissNotification(id: string) {
-  // @ts-ignore - Database types need regeneration
-  const { error } = await (supabase
+  const { error } = await supabase
     .from('notifications')
-    .update({ dismissed: true } as any)
-    .eq('id', id))
+    .update({ dismissed: true })
+    .eq('id', id)
 
   if (error) throw error
 }
