@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useState } from 'react'
+import { useAuth } from '../components/AuthProvider'
 import { supabase } from '../lib/supabase'
 import type { Database } from '../lib/database.types'
 
@@ -168,11 +169,22 @@ export function useSupabaseData(workspaceId: string | null) {
  * Hook to get user's workspaces
  */
 export function useWorkspaces() {
+  const { user, loading: authLoading } = useAuth()
   const [workspaces, setWorkspaces] = useState<Workspace[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (authLoading) return
+
+    if (!user) {
+      setWorkspaces([])
+      setLoading(false)
+      setError(null)
+      return
+    }
+
+    const userId = user.id
     let mounted = true
 
     async function loadWorkspaces() {
@@ -180,16 +192,11 @@ export function useWorkspaces() {
         setLoading(true)
         setError(null)
 
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) {
-          throw new Error('Not authenticated')
-        }
-
         // Get workspaces where user is a member
         const { data: members, error: membersError } = await supabase
           .from('workspace_members')
           .select('workspace_id')
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
 
         if (membersError) throw membersError
 
@@ -214,10 +221,10 @@ export function useWorkspaces() {
           setWorkspaces(workspacesData || [])
           setLoading(false)
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (mounted) {
           console.error('Failed to load workspaces:', err)
-          setError(err.message || 'Failed to load workspaces')
+          setError(err instanceof Error ? err.message : 'Failed to load workspaces')
           setLoading(false)
         }
       }
@@ -228,7 +235,7 @@ export function useWorkspaces() {
     return () => {
       mounted = false
     }
-  }, [])
+  }, [user, authLoading])
 
   return { workspaces, loading, error }
 }
